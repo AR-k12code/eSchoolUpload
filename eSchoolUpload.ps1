@@ -2,6 +2,7 @@
 if($args[0]){ $CurrentYear = $args[0] }else { $CurrentYear = 2019 }
 if($args[1]){ $InFile = $args[1] }else { $InFile = "C:\ImportFiles\eSchoolStudentEmail\ModifiedForUpload\names.txt" }
 if($args[2]){ $username = $args[2] } else { $username = "5805x" }
+#Below is referencing a .csv for easier password management across scripts.  Could simplify with ...else{ $password = "Password1" }
 if($args[3]){ $password = $args[3] } else { import-csv C:\Scripts\5805x.csv | % { $password = $_.value } }
 
 #These 2 are only needed if automating Upload Interface run
