@@ -1,28 +1,32 @@
-# Parameters/variables: Can pass as parameters or hard code values here -----------------------------------------------
-if($args[0]){ $CurrentYear = $args[0] }else { $CurrentYear = 2019 }
-if($args[1]){ $InFile = $args[1] }else { $InFile = "C:\ImportFiles\eSchoolStudentEmail\ModifiedForUpload\names.txt" }
-if($args[2]){ $username = $args[2] } else { $username = "5805x" }
-#Below is referencing a .csv for easier password management across scripts.  Could simplify with ...else{ $password = "Password1" }
-if($args[3]){ $password = $args[3] } else { import-csv C:\Scripts\5805x.csv | % { $password = $_.value } }
+#Charles Weber 1/27/2020
+#Thank you to Ben Janelle for the base script
+#V1 convert from args to parameters
+#V1 configured to use same password file as Cognosdownload script if on the same machine
+#V1 Testing the flexible $currentyear to dynamically set the school year based off the current month.
 
-#These 2 are only needed if automating Upload Interface run
-if($args[4]){ $RunMode = $args[4] } else { $RunMode = "V" } #V for verify (testing) R for actual run
-if($args[5]){ $InterfaceID = $args[5] } else { $InterfaceID = "UpSEm" }
-
-
-<# Working on replacing above and making this more object oriented/better "parametorized"
-$getrecord = import-csv C:\Scripts\580x.csv | % { $password = $_.value }
-
-Param(
-  $CurrentYear = '2019',
-  [string]$InFile = 'C:\ImportFiles\eSchoolStudentEmail\ModifiedForUpload\names.txt',
-  $username = "5805x",
-  $password = $getrecord,
-  $RunMode = "V",
-  $InterfaceID = "UpSEm"
+Parameter(
+[paramater(Position=0,mandatory=$false,Helpmessage="Optional year input will default to current school year")]
+[String]$CurrentYear = (IF((Get-date).month -le "6") {(Get-date).year} else {(Get-date).year+1}),
+[paramater(Position=1,mandatory=$true,Helpmessage="What file do you want to upload")]
+[String]$InFile = "C:\scripts\Mass-EmailUpdate-Eschool.csv", #***Variable*** Change to default upload file if you want to specify one
+[paramater(Position=2,mandatory=$false,Helpmessage="Eschool username")]
+[String] $username = "Schoolaccount", #***Variable*** Change to default eschool usename
+[paramater(Position=3,mandatory=$false,Helpmessage="Run mode, V for verfiy and R to commit data changes to eschool")][ValidateSet("R","V")]
+[String]$RunMode = "V",
+[paramater(Position=4,mandatory=$false,Helpmessage="Interface upload Definition to run")]
+[String]$InterfaceID, #**Variable** Default upload definition you want to call, can be found on the upload/download defintiion Interface ID
+[parameter(Mandatory=$false,HelpMessage="File for ADE SSO Password")]
+[string]$passwordfile="C:\Scripts\apscnpw.txt" #--- VARIABLE --- change to a file path for SSO password
 )
-#>
 
+If ((Test-Path ($passwordfile))) {
+    $password = Get-Content $passwordfile | ConvertTo-SecureString
+}
+Else {
+    Write-Host("Password file does not exist! [$passwordfile]. Please enter a password to be saved on this computer for scripts") -ForeGroundColor Yellow
+    Read-Host "Enter Password" -AsSecureString |  ConvertFrom-SecureString | Out-File $passwordfile
+    $password = Get-Content $passwordfile | ConvertTo-SecureString
+}
 # ---------------------------------------------------------------------------------------------------------------------
 # Various URL variables.  Up top for when SunGard inevitably changes them all... --------------------------------------
 $baseUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/"
@@ -81,10 +85,8 @@ $template = @'
 --{0}
 Content-Disposition: form-data; name="fileData"; filename="{1}"
 Content-Type: {2}
-
 {3}
 --{0}--
-
 '@
 
 $body = $template -f $boundary, $fileName, $mimeType, $enc.GetString($fileBin)
