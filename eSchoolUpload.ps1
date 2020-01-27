@@ -4,7 +4,7 @@
 #V1 configured to use same password file as Cognosdownload script if on the same machine
 #V1 Testing the flexible $currentyear to dynamically set the school year based off the current month.
 
-Parameter(
+Param(
 [paramater(Position=0,mandatory=$false,Helpmessage="Optional year input will default to current school year")]
 [String]$CurrentYear = (IF((Get-date).month -le "6") {(Get-date).year} else {(Get-date).year+1}),
 [paramater(Position=1,mandatory=$true,Helpmessage="What file do you want to upload")]
