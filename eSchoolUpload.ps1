@@ -1,11 +1,17 @@
 #Charles Weber 1/31/2020
 #Thank you to Ben Janelle for the base script
 #V1 convert from args to parameters
-#V1 configured to use same password file as Cognosdownload script if on the same machine
-#V1 Testing the flexible $currentyear to dynamically set the school year based off the current month.
+#To to/Improve
+#configured to use same password file as Cognosdownload script if on the same machine
+#Testing the flexible $currentyear to dynamically set the school year based off the current month.
 #[String]$CurrentYear = (IF((Get-date).month -le "6") {(Get-date).year} else {(Get-date).year+1}),
 #Need to also figure out a way to generalize/variable $form2.Fields["EnvironmentConfiguration.Database"] = "2110" to make configuration easier
 #other improvements/suggested made by the community
+
+#Instructions to find Your Environment Configuration database: Login to eschool where you have to select your current school year (incognito browser helps)
+#Select the current school year sit at the start screen
+#F12 to go to developer tools->Network->Other->Name SessionStart
+# Look under the headers down to Form Data, For EnvironmentalConfiguration Database
 
 Param(
 [parameter(Position=0,mandatory=$true,Helpmessage="Optional year input will default to current school year")]
@@ -73,7 +79,7 @@ $form2 = $response2.Forms[0]
 
 $form2.Fields["EnvironmentConfiguration.SchoolYear"] = $CurrentYear #change for alternate years' databases
 $form2.Fields["EnvironmentConfiguration.SummerSchool"] = "false" #"not supported in AR at this time"
-$form2.Fields["EnvironmentConfiguration.Database"] = "2110" #not sure what this does, but the form will not submit without it
+$form2.Fields["EnvironmentConfiguration.Database"] = "Yourschoolshere" #The form will not submit without it
 $form2.Fields["EnvironmentConfiguration.ImpersonatedUser"] = "" 
 
 #Pass the environment setting screen to finish logging in
