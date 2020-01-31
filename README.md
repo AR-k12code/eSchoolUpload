@@ -15,6 +15,7 @@
 #Select the current school year sit at the start screen
 #F12 to go to developer tools->Network->Other->Name SessionStart
 # Look under the headers down to Form Data, For EnvironmentalConfiguration Database
+![alt txt](https://raw.githubusercontent.com/Cweber42/eSchoolUpload/master/Eschooluploadhelp.PNG)
 
 eSchool Upload Script
 tldr:This script logs into eSchool, navigates to the Upload File page, uploads a file to your user directory, and then kicks off an upload interface process.
