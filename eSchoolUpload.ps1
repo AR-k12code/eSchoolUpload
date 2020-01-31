@@ -1,8 +1,11 @@
-#Charles Weber 1/27/2020
+#Charles Weber 1/31/2020
 #Thank you to Ben Janelle for the base script
 #V1 convert from args to parameters
 #V1 configured to use same password file as Cognosdownload script if on the same machine
 #V1 Testing the flexible $currentyear to dynamically set the school year based off the current month.
+#[String]$CurrentYear = (IF((Get-date).month -le "6") {(Get-date).year} else {(Get-date).year+1}),
+#Need to also figure out a way to generalize/variable $form2.Fields["EnvironmentConfiguration.Database"] = "2110" to make configuration easier
+#other improvements/suggested made by the community
 
 Param(
 [parameter(Position=0,mandatory=$true,Helpmessage="Optional year input will default to current school year")]
