@@ -1,5 +1,21 @@
 # eSchoolUpload
 <#
+
+#Charles Weber 1/31/2020
+#Thank you to Ben Janelle for the base script
+#V1 convert from args to parameters
+#To to/Improve
+#configured to use same password file as Cognosdownload script if on the same machine
+#Testing the flexible $currentyear to dynamically set the school year based off the current month.
+#[String]$CurrentYear = (IF((Get-date).month -le "6") {(Get-date).year} else {(Get-date).year+1}),
+#Need to also figure out a way to generalize/variable $form2.Fields["EnvironmentConfiguration.Database"] = "2110" to make configuration easier
+#other improvements/suggested made by the community
+
+#Instructions to find Your Environment Configuration database: Login to eschool where you have to select your current school year (incognito browser helps)
+#Select the current school year sit at the start screen
+#F12 to go to developer tools->Network->Other->Name SessionStart
+# Look under the headers down to Form Data, For EnvironmentalConfiguration Database
+
 eSchool Upload Script
 tldr:This script logs into eSchool, navigates to the Upload File page, uploads a file to your user directory, and then kicks off an upload interface process.
 This requires a completed and ready file to upload, and a pre-built upload processes in eSchool for the last leg.  Not exactly an API, but it does build the last bridge needed for automating data into eSchool.
@@ -9,13 +25,6 @@ Our office folks often mis-type student email address, or don't put them in at a
 
 Created: 5/7/2019 (first working version)
 -Ben Janelle
-
-Usage
--------------------------------------------------------------------------
-Parameters: School Year, Upload file name/path, username, password, run mode (optional, only needed if automating upload interface), interface ID (optional, only needed if automating upload interface)
-
-From PowerShell ex: C:\Scripts\eSchoolStudentEmail\eSchoolStudentEmail.ps1 2019 'C:\ImportFiles\eSchoolStudentEmail\ModifiedForUpload\names.txt' 5805bjanelle AwesomeDISpwNOspecials V UpSEm
-From cmd or batch file ex: powershell.exe -executionpolicy bypass -file C:\ImportFiles\Scripts\eSchoolUpload3.ps1 
 
 
 Troubleshooting command examples
