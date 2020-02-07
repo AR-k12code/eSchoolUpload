@@ -1,20 +1,12 @@
-#Charles Weber 1/31/2020
 #Thank you to Ben Janelle for the base script
-#V1 convert from args to parameters
+# 1/31/2020 - Charles Weber - convert from args to parameters
+# 2/6/2020 - Craig Millsap - Added automatic database selection, auto year selection, and CognosDownloader password.
+
 #To to/Improve
 #configured to use same password file as Cognosdownload script if on the same machine
-#Testing the flexible $currentyear to dynamically set the school year based off the current month.
-#[String]$CurrentYear = (IF((Get-date).month -le "6") {(Get-date).year} else {(Get-date).year+1}),
-#Need to also figure out a way to generalize/variable $form2.Fields["EnvironmentConfiguration.Database"] = "2110" to make configuration easier
-#other improvements/suggested made by the community
-
-#Instructions to find Your Environment Configuration database: Login to eschool where you have to select your current school year (incognito browser helps)
-#Select the current school year sit at the start screen
-#F12 to go to developer tools->Network->Other->Name SessionStart
-# Look under the headers down to Form Data, For EnvironmentalConfiguration Database
 
 Param(
-[parameter(Position=0,mandatory=$true,Helpmessage="Optional year input will default to current school year")]
+[parameter(Position=0,mandatory=$false,Helpmessage="Optional year input will default to current school year")]
 $CurrentYear,
 [parameter(Position=1,mandatory=$false,Helpmessage="What file do you want to upload, Full path c:\scripts\filename.csv")]
 [String]$InFile = "C:\scripts\Mass-EmailUpdate-Eschool3.csv", #***Variable*** Change to default upload file if you want to specify one
@@ -30,15 +22,16 @@ $CurrentYear,
 [int]$addtime = "1" #Specify the time in minutes to wait to run the upload definition
 )
 Add-Type -AssemblyName System.Web
-If ((Test-Path ($passwordfile))) {
-    $password = Get-Content $passwordfile | ConvertTo-SecureString -AsPlainText -Force
+If (Test-Path $passwordfile) {
+    #$password = Get-Content $passwordfile | ConvertTo-SecureString -AsPlainText -Force
+    $password = (New-Object pscredential "user",(Get-Content C:\Scripts\apscnpw.txt | ConvertTo-SecureString)).GetNetworkCredential().Password
 }
 Else {
     Write-Host("Password file does not exist! [$passwordfile]. Please enter a password to be saved on this computer for scripts") -ForeGroundColor Yellow
     Read-Host "Enter Password" -AsSecureString |  ConvertFrom-SecureString | Out-File $passwordfile
     $password = Get-Content $passwordfile | ConvertTo-SecureString -AsPlainText -Force
 }
-$password = "Sadlyunsecuredpasswordsfornow"
+
 # ---------------------------------------------------------------------------------------------------------------------
 # Various URL variables.  Up top for when SunGard inevitably changes them all... --------------------------------------
 $baseUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/"
@@ -47,6 +40,13 @@ $envUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Account/SetEnvironment/
 $uploadUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Utility/UploadFile"
 $runuploadUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Utility/RunUpload"
 
+if (-Not($CurrentYear)) {
+    if ((Get-date).month -le "6") {
+        $CurrentYear = (Get-date).year
+    } else {
+        $CurrentYear = (Get-date).year+1
+    }
+}
 # ---------------------------------------------------------------------------------------------------------------------
 
 #Grab the eSchool login page and create websession
@@ -77,9 +77,11 @@ $form2 = $response2.Forms[0]
 #$form2.Fields["EnvironmentConfiguration_SchoolYear"] = "2019"
 #$form2.Fields["EnvironmentConfiguration_SummerSchool"] = ""
 
+$Database = $(Invoke-WebRequest -uri 'https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Account/SetEnvironment?actionDetails=EditEnvironment' -WebSession $rb -Method GET).ParsedHtml.GetElementById("EnvironmentConfiguration_Database").value
+
 $form2.Fields["EnvironmentConfiguration.SchoolYear"] = $CurrentYear #change for alternate years' databases
 $form2.Fields["EnvironmentConfiguration.SummerSchool"] = "false" #"not supported in AR at this time"
-$form2.Fields["EnvironmentConfiguration.Database"] = "Yourschoolshere" #The form will not submit without it
+$form2.Fields["EnvironmentConfiguration.Database"] = $Database #The form will not submit without it
 $form2.Fields["EnvironmentConfiguration.ImpersonatedUser"] = "" 
 
 #Pass the environment setting screen to finish logging in
