@@ -13,17 +13,17 @@ Our office folks often mis-type student email address, or don't put them in at a
 
 eSchoolDownload.ps1
 -------------------------------------------------------------------------
-./eSchoolDownload.ps1
-  -username 0000username
-  -reportname "studentemails" #Files that have a specific name
-  -reportnamelike "HomeAccessPasswords" #Files that have the timestamp put at the end. This will download the latest version.
-  -outputfile #Path to place downloaded file. If not specified it will use the filename from eSchool
+./eSchoolDownload.ps1  
+  -username 0000username  
+  -reportname "studentemails" #Files that have a specific name  
+  -reportnamelike "HomeAccessPasswords" #Files that have the timestamp put at the end. This will download the latest version.  
+  -outputfile #Path to place downloaded file. If not specified it will use the filename from eSchool  
   -InterfaceID #Your Download Definition. This will create the file specified by reportname. Script waits until all tasks are complete.
 
 eSchoolGenerateHACLogins.ps1
 -------------------------------------------------------------------------
-./eSchoolGenerateHACLogins.ps1
-  -username 0000username
+./eSchoolGenerateHACLogins.ps1  
+  -username 0000username  
   -buildings "1,2,3" #comma separated building number
 
 Troubleshooting command examples
