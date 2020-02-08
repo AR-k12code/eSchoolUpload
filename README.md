@@ -1,16 +1,30 @@
 # eSchoolUpload
 
-Thank you to Ben Janelle for the base script
-Created: 5/7/2019 (first working version)
+Ben Janelle - 5/7/2019 - First working version
 Charles Weber 1/31/2020
 Craig Millsap 2/7/2020 - Automated Database Selection, Current Year, and Cognos Password
+Craig Millsap 2/8/2020 - Generate HAC logins for Students and eSchool Download
 
-eSchool Upload Script
-tldr:This script logs into eSchool, navigates to the Upload File page, uploads a file to your user directory, and then kicks off an upload interface process.
-This requires a completed and ready file to upload, and a pre-built upload processes in eSchool for the last leg.  Not exactly an API, but it does build the last bridge needed for automating data into eSchool.
+eSchool Scripts
+tldr:These scripts log you into eSchool, runs Upload or Download definitions, Uploads files or Downloads files. This requires a completed and ready file to upload, pre-built Upload or Download Definitions. Not an API, but it does build the last bridge needed for automating data into eSchool.
 
 The initial use case for this was uploading and then inserting/updating student emails into their mailing contact records.
 Our office folks often mis-type student email address, or don't put them in at all, and then those records don't come accross to Clever, iStation, etc., causing various issues for students.
+
+eSchoolDownload.ps1
+-------------------------------------------------------------------------
+./eSchoolDownload.ps1
+  -username 0000username
+  -reportname "studentemails" #Files that have a specific name
+  -reportnamelike "HomeAccessPasswords" #Files that have the timestamp put at the end. This will download the latest version.
+  -outputfile #Path to place downloaded file. If not specified it will use the filename from eSchool
+  -InterfaceID #Your Download Definition. This will create the file specified by reportname. Script waits until all tasks are complete.
+
+eSchoolGenerateHACLogins.ps1
+-------------------------------------------------------------------------
+./eSchoolGenerateHACLogins.ps1
+  -username 0000username
+  -buildings "1,2,3" #comma separated building number
 
 Troubleshooting command examples
 -------------------------------------------------------------------------
