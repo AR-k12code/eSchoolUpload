@@ -1,3 +1,6 @@
+#eSchool Run/Download File
+#2/8/2020 Craig Millsap - Still needs error control
+
 Param(
 [parameter(Position=0,mandatory=$true,Helpmessage="Eschool username")]
 [String]$username="SSOusername", #***Variable*** Change to default eschool usename
@@ -103,14 +106,18 @@ if ($InterfaceID) {
         try {
             $response = Invoke-WebRequest -Uri $tasksurl -WebSession $rb
             $inactiveTasks = $($response.ParsedHtml.body.innerHTML | ConvertFrom-Json | Select-Object -ExpandProperty InactiveTasks | Measure-Object).count
-            $activeTasks = $($response.ParsedHtml.body.innerHTML | ConvertFrom-Json | Select-Object -ExpandProperty InactiveTasks | Measure-Object).count 
+            $activeTasks = $($response.ParsedHtml.body.innerHTML | ConvertFrom-Json | Select-Object -ExpandProperty ActiveTasks | Measure-Object).count 
         } catch {
             write-host "Error checking for tasks"
             exit 2
         }
         Write-Host "Waiting on $($inactiveTasks + $activeTasks) to finish..."
     } until (($inactiveTasks -eq 0) -and ($activeTasks -eq 0))
+
+    #we have to wait a few seconds for the file to be written even though the task is completed.
+    Start-Sleep -Seconds 10
 }
+
 
 #Get JSON of files and tasks.
 try {

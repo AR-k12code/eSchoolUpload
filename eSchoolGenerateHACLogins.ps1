@@ -1,3 +1,6 @@
+#Generate HAC Logins for Students that are Active.
+#Craig Millsap - 2/8/2020
+
 Param(
 [parameter(Position=0,mandatory=$false,Helpmessage="Optional year input will default to current school year")]
 $CurrentYear,
@@ -88,8 +91,8 @@ $params = @{
 	'Filter.GroupingMask' = ''
 	'TaskScheduler.CurrentTask.ScheduleType' = 'N'
 	'TaskScheduler.CurrentTask.SchdInterval' = '1'
-	'TaskScheduler.CurrentTask.ScheduledTimeTime' = Get-Date -UFormat %m/%d/%Y
-	'TaskScheduler.CurrentTask.ScheduledTimeDate' = (Get-Date).AddMinutes($addtime).ToString("hh:mm tt")
+	'TaskScheduler.CurrentTask.ScheduledTimeTime' = (Get-Date).AddMinutes($addtime).ToString("hh:mm tt")
+	'TaskScheduler.CurrentTask.ScheduledTimeDate' = Get-Date -UFormat %m/%d/%Y
 	'TaskScheduler.CurrentTask.Monday' = 'false'
 	'TaskScheduler.CurrentTask.Tuesday' = 'false'
 	'TaskScheduler.CurrentTask.Wednesday' = 'false'
