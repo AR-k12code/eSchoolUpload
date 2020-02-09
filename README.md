@@ -3,7 +3,7 @@
 Ben Janelle - 5/7/2019 - First working version  
 Charles Weber 1/31/2020  
 Craig Millsap 2/7/2020 - Automated Database Selection, Current Year, and Cognos Password  
-Craig Millsap 2/8/2020 - Generate HAC logins for Students and eSchool Download
+Craig Millsap 2/8/2020 - Generate HAC logins for Students and eSchool Download  
 Craig Millsap 2/9/2020 - Sample Script with Download/Upload Definitions PDF
 
 eSchool Scripts
