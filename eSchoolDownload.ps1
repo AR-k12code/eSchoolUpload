@@ -29,9 +29,10 @@ Else {
     $password = Get-Content $passwordfile | ConvertTo-SecureString -AsPlainText -Force
 }
 
-$baseUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/"
-$loginUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Account/LogOn?ReturnUrl=%2feSchoolPLUS40%2f"
-$envUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Account/SetEnvironment/SessionStart"
+$eSchoolDomain = 'https://eschool40.esp.k12.ar.us'
+$baseUrl = $eSchoolDomain + "/eSchoolPLUS40/"
+$loginUrl = $eSchoolDomain + "/eSchoolPLUS40/Account/LogOn?ReturnUrl=%2feSchoolPLUS40%2f"
+$envUrl = $eSchoolDomain + "/eSchoolPLUS40/Account/SetEnvironment/SessionStart"
 
 #Login
 $params = @{
@@ -39,6 +40,7 @@ $params = @{
     'Password' = $password
 }
 $response = Invoke-WebRequest -Uri $loginUrl -SessionVariable rb -Method POST -Body $params -ErrorAction Stop
+if (($response.ParsedHtml.title -eq "Login") -or ($response.StatusCode -ne 200)) { write-host "Failed to login."; exit 1; }
 
 #Set Environment
 $params2 = @{
@@ -50,10 +52,11 @@ $params2 = @{
     'EnvironmentConfiguration.ImpersonatedUser' = ''
 }
 $response2 = Invoke-WebRequest -Uri $envUrl -WebSession $rb -Method POST -Body $params2
+if (($response2.ParsedHtml.title -ne "Home") -or ($response.StatusCode -ne 200)) { write-host "Failed to Set Environment."; exit 1; }
 
 #run download task
 if ($InterfaceID) {
-    $runDownloadUrl = 'https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Utility/RunDownload'
+    $runDownloadUrl = $eSchoolDomain + '/eSchoolPLUS40/Utility/RunDownload'
     $params = @{
         'SearchType' = 'download_filter'
         'SortType' = ''
@@ -100,7 +103,7 @@ if ($InterfaceID) {
     $response = Invoke-WebRequest -Uri $runDownloadUrl -WebSession $rb -Method POST -Body $params
 
     #wait until all tasks are completed
-    $tasksurl = 'https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Task/TaskAndReportData?includeTaskCount=true&includeReports=true&maximumNumberOfReports=-1&includeTasks=true&runningTasksOnly=false'
+    $tasksurl = $eSchoolDomain + '/eSchoolPLUS40/Task/TaskAndReportData?includeTaskCount=true&includeReports=true&maximumNumberOfReports=-1&includeTasks=true&runningTasksOnly=false'
     do {
         Start-Sleep -Seconds 5
         try {
@@ -121,7 +124,7 @@ if ($InterfaceID) {
 
 #Get JSON of files and tasks.
 try {
-    $reportsurl = 'https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Task/TaskAndReportData?includeTaskCount=true&includeReports=true&maximumNumberOfReports=-1&includeTasks=true&runningTasksOnly=false'
+    $reportsurl = $eSchoolDomain + '/eSchoolPLUS40/Task/TaskAndReportData?includeTaskCount=true&includeReports=true&maximumNumberOfReports=-1&includeTasks=true&runningTasksOnly=false'
     $response3 = Invoke-WebRequest -Uri $reportsurl -WebSession $rb
     $reportsjson = $response3.ParsedHtml.body.innerHTML | ConvertFrom-Json | Select-Object -ExpandProperty Reports | Sort-Object -Property ModifiedDate -Descending
 
