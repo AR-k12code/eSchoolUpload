@@ -19,7 +19,7 @@ eSchoolDownload.ps1
   -reportname "studentemails" #Files that have a specific name  
   -reportnamelike "HomeAccessPasswords" #Files that have the timestamp put at the end. This will download the latest version.  
   -outputfile #Path to place downloaded file. If not specified it will use the filename from eSchool  
-  -InterfaceID #Your Download Definition. This will create the file specified by reportname. Script waits until all tasks are complete.
+  -InterfaceID #Your Download Definition. This will create the file specified by reportname. Script waits until all tasks are complete. This must be 5 characters. If you have a 3 character InterfaceID you must character pad it with spaces. Example:"WEB  "
 
 eSchoolGenerateHACLogins.ps1
 -------------------------------------------------------------------------
