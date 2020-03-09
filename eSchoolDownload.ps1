@@ -88,8 +88,8 @@ if ($InterfaceID) {
         'SortFields.SearchType' = 'download_filter'
         'SortFields.SearchNumber' = '0'
         'TaskScheduler.CurrentTask.ScheduleType' = 'O'
-        'TaskScheduler.CurrentTask.ScheduledTimeTime' = Get-Date -UFormat %m/%d/%Y
-        'TaskScheduler.CurrentTask.ScheduledTimeDate' = (Get-Date).AddMinutes($addtime).ToString("hh:mm tt")
+        'TaskScheduler.CurrentTask.ScheduledTimeTime' = (Get-Date).AddMinutes(1).ToString("hh:mm tt")
+        'TaskScheduler.CurrentTask.ScheduledTimeDate' = Get-Date -UFormat %m/%d/%Y
         'TaskScheduler.CurrentTask.SchdInterval' = '1'
         'TaskScheduler.CurrentTask.Monday' = 'false'
         'TaskScheduler.CurrentTask.Tuesday' = 'false'
