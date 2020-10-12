@@ -5,6 +5,7 @@ Charles Weber 1/31/2020
 Craig Millsap 2/7/2020 - Automated Database Selection, Current Year, and Cognos Password  
 Craig Millsap 2/8/2020 - Generate HAC logins for Students and eSchool Download  
 Craig Millsap 2/9/2020 - Sample Script with Download/Upload Definitions PDF
+Craig Millsap 10/12/2020 - Fix for stuck tasks that would indefinitely hang script.
 
 eSchool Scripts
 tldr:These scripts log you into eSchool, runs Upload or Download definitions, Uploads files or Downloads files. This requires a completed and ready file to upload, pre-built Upload or Download Definitions. Sample script and Upload/Download definitions are provided.
