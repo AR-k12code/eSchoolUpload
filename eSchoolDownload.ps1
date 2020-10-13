@@ -109,7 +109,19 @@ if ($InterfaceID) {
         try {
             $response = Invoke-WebRequest -Uri $tasksurl -WebSession $rb
             $inactiveTasks = $($response.ParsedHtml.body.innerHTML | ConvertFrom-Json | Select-Object -ExpandProperty InactiveTasks | Measure-Object).count
-            $activeTasks = $($response.ParsedHtml.body.innerHTML | ConvertFrom-Json | Select-Object -ExpandProperty ActiveTasks | Measure-Object).count 
+            $activeTasks = $($response.ParsedHtml.body.innerHTML | ConvertFrom-Json | Select-Object -ExpandProperty ActiveTasks | Measure-Object).count
+
+            #check for ErrorOccurred -eq true
+            if ($activeTasks -ge 1) {
+                $response.ParsedHtml.body.innerHTML | ConvertFrom-Json | Select-Object -ExpandProperty ActiveTasks | ForEach-Object {
+                    if ($PSItem.ErrorOccurred -eq "true") {
+                        Write-Host "Error: Task", $PSItem.TaskName, "has failed. Clearing error." -ForegroundColor RED
+                        $clearErrorURL = $eschoolDomain + '/eSchoolPLUS40/Task/ClearErroredTask'
+                        $errorpayload = @{ paramKey = $PSItem.TaskKey }
+                        $response = Invoke-WebRequest -Uri $clearErrorURL -WebSession $rb -Method POST -Body $errorpayload
+                    }
+                }
+            }
         } catch {
             write-host "Error checking for tasks"
             exit 2
