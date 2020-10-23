@@ -20,8 +20,7 @@ Add-Type -AssemblyName System.Web
 
 #encrypted password file.
 If (Test-Path $passwordfile) {
-    #$password = Get-Content $passwordfile | ConvertTo-SecureString -AsPlainText -Force
-    $password = (New-Object pscredential "user",(Get-Content C:\Scripts\apscnpw.txt | ConvertTo-SecureString)).GetNetworkCredential().Password
+    $password = (New-Object pscredential "user",(Get-Content $passwordfile | ConvertTo-SecureString)).GetNetworkCredential().Password
 }
 Else {
     Write-Host("Password file does not exist! [$passwordfile]. Please enter a password to be saved on this computer for scripts") -ForeGroundColor Yellow
