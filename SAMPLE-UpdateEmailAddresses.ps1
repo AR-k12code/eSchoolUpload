@@ -15,8 +15,13 @@ try {
 		} catch {
 			return #no match found
 		}
-		$students += "$($PSItem.'CID'),$($student.'Mail'),$($student.'EmployeeNumber')`r`n"
+
+		if ($PSItem.'email' -ne $student.Mail) {
+			$students += "$($PSItem.'CID'),$($student.'Mail'),$($student.'EmployeeNumber')`r`n"
+		}
+		
 		$webaccessflag += "$($PSItem.'CID'),$($student.'EmployeeNumber'),M`r`n"
+		
 	}
 
 	Out-File -Encoding ASCII -InputObject $students -FilePath studentemailsimport.csv -Force -NoNewline
