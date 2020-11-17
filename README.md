@@ -6,6 +6,7 @@ Craig Millsap 2/7/2020 - Automated Database Selection, Current Year, and Cognos 
 Craig Millsap 2/8/2020 - Generate HAC logins for Students and eSchool Download  
 Craig Millsap 2/9/2020 - Sample Script with Download/Upload Definitions PDF
 Craig Millsap 10/12/2020 - Fix for stuck tasks that would indefinitely hang script.
+Craig Millsap 11/16/2020 - Choose the username format for Generating the HAC logins.
 
 eSchool Scripts
 tldr:These scripts log you into eSchool, runs Upload or Download definitions, Uploads files or Downloads files. This requires a completed and ready file to upload, pre-built Upload or Download Definitions. Sample script and Upload/Download definitions are provided.
@@ -27,7 +28,8 @@ eSchoolGenerateHACLogins.ps1
 ./eSchoolGenerateHACLogins.ps1  
   -username 0000username  
   -buildings "1,2,3" #comma separated building number
-
+  -GenerateLoginAs 3 #choose your format
+  
 Troubleshooting command examples
 -------------------------------------------------------------------------
 $form | Format-List :Shows the form method, action, and fields (with what they're currently set to, if space allows)
