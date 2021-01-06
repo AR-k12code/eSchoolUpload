@@ -28,17 +28,22 @@ Else {
     $password = Get-Content $passwordfile | ConvertTo-SecureString -AsPlainText -Force
 }
 
-$eSchoolDomain = 'https://eschool40.esp.k12.ar.us'
-$baseUrl = $eSchoolDomain + "/eSchoolPLUS40/"
-$loginUrl = $eSchoolDomain + "/eSchoolPLUS40/Account/LogOn?ReturnUrl=%2feSchoolPLUS40%2f"
-$envUrl = $eSchoolDomain + "/eSchoolPLUS40/Account/SetEnvironment/SessionStart"
+$eSchoolDomain = 'https://eschool20.esp.k12.ar.us'
+$baseUrl = $eSchoolDomain + "/eSchoolPLUS20/"
+$loginUrl = $eSchoolDomain + "/eSchoolPLUS20/Account/LogOn?ReturnUrl=%2feSchoolPLUS20%2f"
+$envUrl = $eSchoolDomain + "/eSchoolPLUS20/Account/SetEnvironment/SessionStart"
+
+#Get Verification Token.
+$response = Invoke-WebRequest -Uri $loginUrl -SessionVariable rb
 
 #Login
 $params = @{
     'UserName' = $username
     'Password' = $password
+    '__RequestVerificationToken' = $response.InputFields[0].value
 }
-$response = Invoke-WebRequest -Uri $loginUrl -SessionVariable rb -Method POST -Body $params -ErrorAction Stop
+
+$response = Invoke-WebRequest -Uri $loginUrl -WebSession $rb -Method POST -Body $params -ErrorAction Stop
 if (($response.ParsedHtml.title -eq "Login") -or ($response.StatusCode -ne 200)) { write-host "Failed to login."; exit 1; }
 
 #Set Environment
@@ -55,7 +60,7 @@ if (($response2.ParsedHtml.title -ne "Home") -or ($response.StatusCode -ne 200))
 
 #run download task
 if ($InterfaceID) {
-    $runDownloadUrl = $eSchoolDomain + '/eSchoolPLUS40/Utility/RunDownload'
+    $runDownloadUrl = $eSchoolDomain + '/eSchoolPLUS20/Utility/RunDownload'
     $params = @{
         'SearchType' = 'download_filter'
         'SortType' = ''
@@ -63,7 +68,7 @@ if ($InterfaceID) {
         'StartDate' = '07/01/2019'
         'ImportDirectory' = 'UD'
         'TxtImportDirectory' = ''
-        'TaskScheduler.CurrentTask.Classname' = 'LTDB4_0.CRunDownload'
+        'TaskScheduler.CurrentTask.Classname' = 'LTDB20_4.CRunDownload'
         'TaskScheduler.CurrentTask.TaskDescription' = 'Run Interface Download'
         'groupPredicate' = 'false'
         'Filter.Predicates[0].PredicateIndex' = '1'
@@ -102,7 +107,7 @@ if ($InterfaceID) {
     $response = Invoke-WebRequest -Uri $runDownloadUrl -WebSession $rb -Method POST -Body $params
 
     #wait until all tasks are completed
-    $tasksurl = $eSchoolDomain + '/eSchoolPLUS40/Task/TaskAndReportData?includeTaskCount=true&includeReports=true&maximumNumberOfReports=-1&includeTasks=true&runningTasksOnly=false'
+    $tasksurl = $eSchoolDomain + '/eSchoolPLUS20/Task/TaskAndReportData?includeTaskCount=true&includeReports=true&maximumNumberOfReports=-1&includeTasks=true&runningTasksOnly=false'
     do {
         Start-Sleep -Seconds 5
         try {
@@ -115,7 +120,7 @@ if ($InterfaceID) {
                 $response.ParsedHtml.body.innerHTML | ConvertFrom-Json | Select-Object -ExpandProperty ActiveTasks | ForEach-Object {
                     if ($PSItem.ErrorOccurred -eq "true") {
                         Write-Host "Error: Task", $PSItem.TaskName, "has failed. Clearing error." -ForegroundColor RED
-                        $clearErrorURL = $eschoolDomain + '/eSchoolPLUS40/Task/ClearErroredTask'
+                        $clearErrorURL = $eschoolDomain + '/eSchoolPLUS20/Task/ClearErroredTask'
                         $errorpayload = @{ paramKey = $PSItem.TaskKey }
                         $response = Invoke-WebRequest -Uri $clearErrorURL -WebSession $rb -Method POST -Body $errorpayload
                     }
@@ -135,7 +140,7 @@ if ($InterfaceID) {
 
 #Get JSON of files and tasks.
 try {
-    $reportsurl = $eSchoolDomain + '/eSchoolPLUS40/Task/TaskAndReportData?includeTaskCount=true&includeReports=true&maximumNumberOfReports=-1&includeTasks=true&runningTasksOnly=false'
+    $reportsurl = $eSchoolDomain + '/eSchoolPLUS20/Task/TaskAndReportData?includeTaskCount=true&includeReports=true&maximumNumberOfReports=-1&includeTasks=true&runningTasksOnly=false'
     $response3 = Invoke-WebRequest -Uri $reportsurl -WebSession $rb
     $reportsjson = $response3.ParsedHtml.body.innerHTML | ConvertFrom-Json | Select-Object -ExpandProperty Reports | Sort-Object -Property ModifiedDate -Descending
 

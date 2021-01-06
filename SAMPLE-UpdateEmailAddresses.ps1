@@ -37,7 +37,7 @@ try {
 
 
 	#Generating HAC logins requires the eSchoolUpload definition to finish so it needs to be scheduled in the future.
-	Start-Process -FilePath 'powershell.exe' -ArgumentList 'c:\scripts\eSchoolUpload\eSchoolGenerateHACLogins.ps1 -username 0000cmillsap -buildings """13,15,703""" -addtime 10 -Verbose' -Wait -NoNewWindow
+	#Start-Process -FilePath 'powershell.exe' -ArgumentList 'c:\scripts\eSchoolUpload\eSchoolGenerateHACLogins.ps1 -username 0000cmillsap -buildings """13,15,703""" -addtime 10 -Verbose' -Wait -NoNewWindow
 } catch {
 	write-host "Failed somewhere."
 }

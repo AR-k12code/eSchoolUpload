@@ -38,10 +38,10 @@ Else {
     $password = Get-Content $passwordfile | ConvertTo-SecureString -AsPlainText -Force
 }
 
-$baseUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/"
-$loginUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Account/LogOn?ReturnUrl=%2feSchoolPLUS40%2f"
-$envUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Account/SetEnvironment/SessionStart"
-$hacloginsurl = 'https://eschool40.esp.k12.ar.us/eSchoolPLUS40/HomeAccess/Utility/GenerateLogins'
+$baseUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20/"
+$loginUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20/Account/LogOn?ReturnUrl=%2feSchoolPLUS20%2f"
+$envUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20/Account/SetEnvironment/SessionStart"
+$hacloginsurl = 'https://eschool20.esp.k12.ar.us/eSchoolPLUS20/HomeAccess/Utility/GenerateLogins'
 
 if (-Not($CurrentYear)) {
     if ((Get-date).month -le "6") {
@@ -51,12 +51,17 @@ if (-Not($CurrentYear)) {
     }
 }
 
+#Get Verification Token.
+$response = Invoke-WebRequest -Uri $loginUrl -SessionVariable rb
+
 #Login
 $params = @{
     'UserName' = $username
     'Password' = $password
+    '__RequestVerificationToken' = $response.InputFields[0].value
 }
-$response = Invoke-WebRequest -Uri $loginUrl -SessionVariable rb -Method POST -Body $params -ErrorAction Stop
+
+$response = Invoke-WebRequest -Uri $loginUrl -WebSession $rb -Method POST -Body $params -ErrorAction Stop
 
 #Set Environment
 $params2 = @{
