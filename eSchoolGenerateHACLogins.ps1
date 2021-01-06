@@ -1,6 +1,8 @@
 #Generate HAC Logins for Students that are Active.
 #Craig Millsap - 2/8/2020
 
+exit #until we get things figured out for the access code.
+
 Param(
 [parameter(mandatory=$false,Helpmessage="Optional year input will default to current school year")]
 $CurrentYear,
