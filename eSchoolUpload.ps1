@@ -34,11 +34,11 @@ Else {
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Various URL variables.  Up top for when SunGard inevitably changes them all... --------------------------------------
-$baseUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/"
-$loginUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Account/LogOn?ReturnUrl=%2feSchoolPLUS40%2f"
-$envUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Account/SetEnvironment/SessionStart"
-$uploadUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Utility/UploadFile"
-$runuploadUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Utility/RunUpload"
+$baseUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20/"
+$loginUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20/Account/LogOn?ReturnUrl=%2feSchoolPLUS20%2f"
+$envUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20/Account/SetEnvironment/SessionStart"
+$uploadUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20/Utility/UploadFile"
+$runuploadUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20/Utility/RunUpload"
 
 if (-Not($CurrentYear)) {
     if ((Get-date).month -le "6") {
@@ -77,7 +77,7 @@ $form2 = $response2.Forms[0]
 #$form2.Fields["EnvironmentConfiguration_SchoolYear"] = "2019"
 #$form2.Fields["EnvironmentConfiguration_SummerSchool"] = ""
 
-$Database = $(Invoke-WebRequest -uri 'https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Account/SetEnvironment?actionDetails=EditEnvironment' -WebSession $rb -Method GET).ParsedHtml.GetElementById("EnvironmentConfiguration_Database").value
+$Database = $(Invoke-WebRequest -uri 'https://eschool20.esp.k12.ar.us/eSchoolPLUS20/Account/SetEnvironment?actionDetails=EditEnvironment' -WebSession $rb -Method GET).ParsedHtml.GetElementById("EnvironmentConfiguration_Database").value
 
 $form2.Fields["EnvironmentConfiguration.SchoolYear"] = $CurrentYear #change for alternate years' databases
 $form2.Fields["EnvironmentConfiguration.SummerSchool"] = "false" #"not supported in AR at this time"
@@ -152,7 +152,7 @@ $form4.Fields["RunType"] = "UPLOAD"
 $form4.Fields["SearchType"] = "upload_filter"
 $form4.Fields["SortType"] = ""
 $form4.Fields["StudWithoutOpenProg"] = "USD"
-$form4.Fields["TaskScheduler.CurrentTask.Classname"] = "LTDB4_0.CRunUpload"
+$form4.Fields["TaskScheduler.CurrentTask.Classname"] = "LTDB20_4.CRunUpload"
 $form4.Fields["TaskScheduler.CurrentTask.Friday"] = "false"
 $form4.Fields["TaskScheduler.CurrentTask.Monday"] = "false"
 $form4.Fields["TaskScheduler.CurrentTask.Saturday"] = "false"

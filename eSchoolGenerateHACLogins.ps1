@@ -2,17 +2,28 @@
 #Craig Millsap - 2/8/2020
 
 Param(
-[parameter(Position=0,mandatory=$false,Helpmessage="Optional year input will default to current school year")]
+[parameter(mandatory=$false,Helpmessage="Optional year input will default to current school year")]
 $CurrentYear,
-[parameter(Position=1,mandatory=$true,Helpmessage="Which buildings do you want to generate HAC logins for? Example:'1,2,3'")]
+[parameter(mandatory=$true,Helpmessage="Which buildings do you want to generate HAC logins for? Example:'1,2,3'")]
 [String]$buildings = "13,15,703", #***Variable*** What Buildings. Specified as a comma separated string.
-[parameter(Position=2,mandatory=$true,Helpmessage="Eschool username")]
+[parameter(mandatory=$true,Helpmessage="Eschool username")]
 [String] $username="SSOusername", #***Variable*** Change to default eschool usename
 [parameter(Mandatory=$false,HelpMessage="File for ADE SSO Password")]
 [string]$passwordfile="C:\Scripts\apscnpw.txt", #--- VARIABLE --- change to a file path for SSO password
-[parameter(Position=0,mandatory=$false,Helpmessage="Specify the time to wait before running the task")]
-[int]$addtime = "1" #Specify the time in minutes to wait to run task
+[parameter(mandatory=$false,Helpmessage="Specify the time to wait before running the task")]
+[int]$addtime = 1, #Specify the time in minutes to wait to run task
+[parameter(mandatory=$false,Helpmessage="Specify the username template to generate.")]
+[int]$GenerateLoginAs = 7 # 7 is default using the email address.
 )
+
+#Username format is as follows:
+#1 - FirstInitial.LastName
+#2 - FirstInitial.MiddleInitial.LastName
+#3 - FirstName.LastName
+#4 - LastName.FirstInitial
+#5 - LastName.FirstInitial.MiddleInitial
+#6 - LastName.FirstName
+#7 - Email Address (Default)
 
 Add-Type -AssemblyName System.Web
 
@@ -27,10 +38,10 @@ Else {
     $password = Get-Content $passwordfile | ConvertTo-SecureString -AsPlainText -Force
 }
 
-$baseUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/"
-$loginUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Account/LogOn?ReturnUrl=%2feSchoolPLUS40%2f"
-$envUrl = "https://eschool40.esp.k12.ar.us/eSchoolPLUS40/Account/SetEnvironment/SessionStart"
-$hacloginsurl = 'https://eschool40.esp.k12.ar.us/eSchoolPLUS40/HomeAccess/Utility/GenerateLogins'
+$baseUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20/"
+$loginUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20/Account/LogOn?ReturnUrl=%2feSchoolPLUS20%2f"
+$envUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20/Account/SetEnvironment/SessionStart"
+$hacloginsurl = 'https://eschool20.esp.k12.ar.us/eSchoolPLUS20/HomeAccess/Utility/GenerateLogins'
 
 if (-Not($CurrentYear)) {
     if ((Get-date).month -le "6") {
@@ -40,12 +51,17 @@ if (-Not($CurrentYear)) {
     }
 }
 
+#Get Verification Token.
+$response = Invoke-WebRequest -Uri $loginUrl -SessionVariable rb
+
 #Login
 $params = @{
     'UserName' = $username
     'Password' = $password
+    '__RequestVerificationToken' = $response.InputFields[0].value
 }
-$response = Invoke-WebRequest -Uri $loginUrl -SessionVariable rb -Method POST -Body $params -ErrorAction Stop
+
+$response = Invoke-WebRequest -Uri $loginUrl -WebSession $rb -Method POST -Body $params -ErrorAction Stop
 
 #Set Environment
 $params2 = @{
@@ -69,7 +85,7 @@ $params = @{
 	'SelectedTypes' = 'M'
 	'SelectedTypesCheckAll' = 'false'
 	'GenerateLoginsFlag' = 'L'
-	'GenerateLoginsAsFlag' = '7'
+	'GenerateLoginsAsFlag' = "$GenerateLoginAs"
 	'OverrideExisting' = 'false'
 	'TaskScheduler.CurrentTask.Classname' = 'Utilities4_0.CGenerateHACLogins'
 	'TaskScheduler.CurrentTask.TaskDescription' = 'Generate HAC Logins & Passwords'
