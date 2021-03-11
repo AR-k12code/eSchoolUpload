@@ -19,7 +19,8 @@ If you need a modification please contact one of the AR-k12code developers.
 Param(
     [parameter(Mandatory=$false,Helpmessage="eSchool username")][string]$username,
     [parameter(Mandatory=$false,HelpMessage="File for ADE SSO Password")][string]$passwordfile="C:\Scripts\apscnpw.txt",
-	[parameter(Mandatory=$false,HelpMessage="What AD Field Contains your Student ID?")][string]$ADField="EmployeeNumber"
+	[parameter(Mandatory=$false,HelpMessage="What AD Field Contains your Student ID?")][string]$ADField="EmployeeNumber",
+	[parameter(Mandatory=$false,HelpMessage="Skip uploading to eSchool")][switch]$skipupload
 )
 
 try {
@@ -90,7 +91,9 @@ try {
 			$lines | Out-File "$PSScriptRoot\temp\student_email_upload.csv" -Force -NoNewline
 		}
 		
-		. .\eSchoolUpload.ps1 -InFile "$PSScriptRoot\temp\student_email_upload.csv" -InterfaceID EMLUP -RunMode R
+		if (-Not($skipupload)) {
+			. .\eSchoolUpload.ps1 -InFile "$PSScriptRoot\temp\student_email_upload.csv" -InterfaceID EMLUP -RunMode R
+		}
 
 	}
 
@@ -105,7 +108,10 @@ try {
 			}
 			$lines | Out-File "$PSScriptRoot\temp\webaccess_upload.csv" -Force -NoNewline
 		}
-		. .\eSchoolUpload.ps1 -InFile "$PSScriptRoot\temp\webaccess_upload.csv" -InterfaceID EMLAC -RunMode R -addtime 0
+		
+		if (-Not($skipupload)) {
+			. .\eSchoolUpload.ps1 -InFile "$PSScriptRoot\temp\webaccess_upload.csv" -InterfaceID EMLAC -RunMode R -addtime 0
+		}
 	}
 		
 } catch {
