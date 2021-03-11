@@ -1,103 +1,36 @@
-#Thank you to Ben Janelle for the base script
-# 1/31/2020 - Charles Weber - convert from args to parameters
-# 2/6/2020 - Craig Millsap - Added automatic database selection, auto year selection, and CognosDownloader password.
+<#
 
-#To to/Improve
-#configured to use same password file as Cognosdownload script if on the same machine
+eSchool Upload File
+Craig Millsap - Gentry Public Schools
+3/10/2021 - Rewrite for Powershell 7 and using the CognosDefaults.ps1 if exists.
+
+Thank you to Ben Janelle for the base script
+1/31/2020 - Charles Weber - convert from args to parameters
+
+Please don't edit this file unless you're pushing code back to the Github repository.
+It makes helping you later a LOT harder. These scripts are designed to be invoked from another script.
+If you need a modification please contact one of the AR-k12code developers.
+
+#>
 
 Param(
-[parameter(Position=0,mandatory=$false,Helpmessage="Optional year input will default to current school year")]
-$CurrentYear,
-[parameter(Position=1,mandatory=$false,Helpmessage="What file do you want to upload, Full path c:\scripts\filename.csv")]
-[String]$InFile = "C:\scripts\Mass-EmailUpdate-Eschool3.csv", #***Variable*** Change to default upload file if you want to specify one
-[parameter(Position=2,mandatory=$false,Helpmessage="Eschool username")]
-[String] $username="SSOusername", #***Variable*** Change to default eschool usename
-[parameter(Position=3,mandatory=$false,Helpmessage="Run mode, V for verfiy and R to commit data changes to eschool")][ValidateSet("R","V")]
-[String]$RunMode="V",
-[parameter(Position=4,mandatory=$false,Helpmessage="Interface upload Definition to run")]
-[String]$InterfaceID, #**Variable** Default upload definition you want to call, can be found on the upload/download defintiion Interface ID [CASE SENSTIVE!]
-[parameter(Mandatory=$false,HelpMessage="File for ADE SSO Password")]
-[string]$passwordfile="C:\Scripts\apscnpw.txt", #--- VARIABLE --- change to a file path for SSO password
-[parameter(Position=0,mandatory=$false,Helpmessage="Specify the time to wait before running the upload script")]
-[int]$addtime = "1" #Specify the time in minutes to wait to run the upload definition
+    [parameter(mandatory=$false,Helpmessage="eSchool username")][String]$username,
+    [parameter(mandatory=$false,Helpmessage="What file do you want to upload, Full path c:\scripts\filename.csv")][String]$InFile,
+    [parameter(mandatory=$false,Helpmessage="Run mode, V for verfiy and R to commit data changes to eschool")][ValidateSet("R","V")][String]$RunMode="V",
+    [parameter(mandatory=$false,Helpmessage="Interface upload Definition to run")][String]$InterfaceID, #Upload definition you want to call, can be found on the upload/download defintiion Interface ID [CASE SENSTIVE!]
+    [parameter(Mandatory=$false,HelpMessage="File for ADE SSO Password")][string]$passwordfile="C:\Scripts\apscnpw.txt",
+    [parameter(mandatory=$false,Helpmessage="Specify the time to wait before running the upload script")][int]$addtime = "1" #Specify the time in minutes to wait to run the upload definition
 )
-Add-Type -AssemblyName System.Web
-If (Test-Path $passwordfile) {
-    #$password = Get-Content $passwordfile | ConvertTo-SecureString -AsPlainText -Force
-    $password = (New-Object pscredential "user",(Get-Content C:\Scripts\apscnpw.txt | ConvertTo-SecureString)).GetNetworkCredential().Password
-}
-Else {
-    Write-Host("Password file does not exist! [$passwordfile]. Please enter a password to be saved on this computer for scripts") -ForeGroundColor Yellow
-    Read-Host "Enter Password" -AsSecureString |  ConvertFrom-SecureString | Out-File $passwordfile
-    $password = Get-Content $passwordfile | ConvertTo-SecureString -AsPlainText -Force
+
+if (-Not(Test-Path "$InFile")) {
+    Write-Host "Error: Can not find the file ""$InFile""" -ForegroundColor Red
+    exit(1)
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
-# Various URL variables.  Up top for when SunGard inevitably changes them all... --------------------------------------
-$baseUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20/"
-$loginUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20/Account/LogOn?ReturnUrl=%2feSchoolPLUS20%2f"
-$envUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20/Account/SetEnvironment/SessionStart"
-$uploadUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20/Utility/UploadFile"
-$runuploadUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20/Utility/RunUpload"
-
-if (-Not($CurrentYear)) {
-    if ((Get-date).month -le "6") {
-        $CurrentYear = (Get-date).year
-    } else {
-        $CurrentYear = (Get-date).year+1
-    }
+if (-Not($eSchoolSession)) {
+    . ./eSchool-Login.ps1 -username $username
 }
-# ---------------------------------------------------------------------------------------------------------------------
 
-#Grab the eSchool login page and create websession
-$response = Invoke-WebRequest -Uri $loginUrl -SessionVariable rb
-
-#Get the first HTML <form> element on the page (login form in this case)
-$form = $response.Forms[0]
-
-#Set the username and password fields for the session
-$form.Fields["UserName"] = $username
-$form.Fields["Password"] = $password
-
-#Login to eSchool with the created session (which now includes username/password)
-Try{
-$response2 = Invoke-WebRequest -Uri $loginUrl -WebSession $rb -Method POST -Body $form.Fields -ErrorAction Stop
-$statuscode = $response2.Statuscode
-}
-Catch
-{
- $statuscode = $_.Exception.Response.Statuscode.value__
-}
-$statuscode
-#Get the first HTML <form> element on the page (set environment form in this case)
-$form2 = $response2.Forms[0]
-
-#Something with the environment page turns the initial html form field names with underscores into ones with dots/periods instead.  
-#The .Database field/value is also created on the server side, and not part of the initial html form (found both of these changes with Chrome dev tools, network tab)
-#$form2.Fields["EnvironmentConfiguration_SchoolYear"] = "2019"
-#$form2.Fields["EnvironmentConfiguration_SummerSchool"] = ""
-
-$Database = $(Invoke-WebRequest -uri 'https://eschool20.esp.k12.ar.us/eSchoolPLUS20/Account/SetEnvironment?actionDetails=EditEnvironment' -WebSession $rb -Method GET).ParsedHtml.GetElementById("EnvironmentConfiguration_Database").value
-
-$form2.Fields["EnvironmentConfiguration.SchoolYear"] = $CurrentYear #change for alternate years' databases
-$form2.Fields["EnvironmentConfiguration.SummerSchool"] = "false" #"not supported in AR at this time"
-$form2.Fields["EnvironmentConfiguration.Database"] = $Database #The form will not submit without it
-$form2.Fields["EnvironmentConfiguration.ImpersonatedUser"] = "" 
-
-#Pass the environment setting screen to finish logging in
-$response3 = Invoke-WebRequest -Uri $envUrl -WebSession $rb -Method POST -Body $form2.Fields
-
-#After logging in, and setting environment variables, navigate to the upload file page
-$response4 = Invoke-WebRequest -Uri $uploadUrl -WebSession $rb -Method GET
-
-#Get the first HTML <form> element on the page (upload file form in this case)
-$form3 = $response4.Forms[0]
-
-#set the eSchool upload location (don't know of any other option other than what's below)
-$form3.Fields["UploadLocation"] = "UserReportDir"
-
-#variables and formatting for uploading the file
-$mimeType = [System.Web.MimeMapping]::GetMimeMapping($InFile)
 $fileName = Split-Path $InFile -leaf
 $enc = [System.Text.Encoding]::GetEncoding("iso-8859-1")
 $boundary = [guid]::NewGuid().ToString()
@@ -112,68 +45,76 @@ Content-Type: {2}
 --{0}--
 
 '@
-
 $body = $template -f $boundary, $fileName, $mimeType, $enc.GetString($fileBin)
-$body += $form3.Fields
 
-#Post the upload file
-$response5 = Invoke-WebRequest -Uri $uploadUrl -Method Post -WebSession $rb -ContentType "multipart/form-data; boundary=$boundary" -Body $body 
+try {
+    Write-Host "Info: Uploading file $($fileName)..." -NoNewline
+    $response1 = Invoke-WebRequest -Uri $uploadUrl -ContentType "multipart/form-data; boundary=$boundary" -Method Post -WebSession $eSchoolSession -Body $body
+    Write-Host "Success."
+} catch {
+    Write-Host "Error: Failed to upload file to eSchool. $_" -ForegroundColor Red
+    exit(1)
+}
 
 #If just wanting to upload a file to eSchool, you're done!  
 #Below is specific to an Upload Interface I've made in eSchool.  You'll either have to modify it to match what you're doing, or comment out here below.
 #You can schedule eSchool upload interfaces to run on a schedule within eSchool, if you don't want to mess with this.
 #-----------------------------------------------------------------------------------------------------------------------------
 
-If ($InterfaceID){
+If ($InterfaceID) {
 
-#Navigate to Run Upload page
-$response6 = Invoke-WebRequest -Uri $runuploadUrl -WebSession $rb -Method GET
+    $params = @{
+        'SearchType' = 'upload_filter'
+        'SortType' = ''
+        'InterfaceId' = "$InterfaceID"
+        'RunMode' = "$RunMode"
+        'InsertNewRec' = 'true'
+        'UpdateExistRec' = 'true'
+        'UpdateBlankRec' = 'false'
+        'ImportDirectory' = 'UD'
+        'StudWithoutOpenProg' = 'USD'
+        'RunType' = 'UPLOAD'
+        'ProgramDatesEnabled' = 'N'
+        'TaskScheduler.CurrentTask.Classname' = 'LTDB20_4.CRunUpload'
+        'TaskScheduler.CurrentTask.TaskDescription' = "Run Interface Upload $InterfaceID"
+        'groupPredicate' = 'false'
+        'Filter.Predicates[0].PredicateIndex' = '1'
+        'tableKey' = ''
+        'Filter.Predicates[0].DataType' = 'Char'
+        'Filter.LoginId' = "$username"
+        'Filter.SearchType' = 'upload_filter'
+        'Filter.SearchNumber' = '0'
+        'Filter.GroupingMask' = ''
+        'TaskScheduler.CurrentTask.ScheduleType' = 'N'
+        'TaskScheduler.CurrentTask.SchdInterval' = '1'
+        'TaskScheduler.CurrentTask.ScheduledTimeTime' = (get-date).AddMinutes($addtime).ToString("hh:mm tt") #Set forward 1 minute(s) "03:45 PM"
+        'TaskScheduler.CurrentTask.ScheduledTimeDate' = get-date -UFormat %m/%d/%Y #"05/07/2019"
+        'TaskScheduler.CurrentTask.Monday' = 'false'
+        'TaskScheduler.CurrentTask.Tuesday' = 'false'
+        'TaskScheduler.CurrentTask.Wednesday' = 'false'
+        'TaskScheduler.CurrentTask.Thursday' = 'false'
+        'TaskScheduler.CurrentTask.Friday' = 'false'
+        'TaskScheduler.CurrentTask.Saturday' = 'false'
+        'TaskScheduler.CurrentTask.Sunday' = 'false'
+        'ProgramStartDate' = ''
+        'ProgramEndDate' = ''
+        'GridEndDateData' = @{}
+        'GridStartDateData' = @{}
+    }
 
-#Get the first HTML <form> element on the page (run upload process form in this case)
-$form4 = $response6.Forms[0]
+    
 
-#Copied/pasted fields out of chrome dev tools, added variables to some.  Need better parameters for various options (blanks, update only, etc.)
-$form4.Fields["Filter.GroupingMask"] = ""
-$form4.Fields["Filter.LoginId"] = $username
-$form4.Fields["Filter.Predicates[0].DataType"] = "Char"
-$form4.Fields["Filter.Predicates[0].PredicateIndex"] = "1"
-$form4.Fields["Filter.SearchNumber"] = "0"
-$form4.Fields["Filter.SearchType"] = "upload_filter"
-$form4.Fields["GridEndDateData"] = "" #[]
-$form4.Fields["GridStartDateData"] = "" #[]
-$form4.Fields["ImportDirectory"] = "UD" #"User's Report Directory"
-$form4.Fields["InsertNewRec"] = "true" #"insert new records checkbox"
-$form4.Fields["InterfaceId"] = $InterfaceID #Upload interface ID from eSchool
-$form4.Fields["ProgramDatesEnabled"] = "N"
-$form4.Fields["ProgramEndDate"] = "" #null
-$form4.Fields["ProgramStartDate"] = "" #null
-$form4.Fields["RunMode"] = $RunMode #"V" for "Verify upload data without updating database "R" for "Run Upload"
-$form4.Fields["RunType"] = "UPLOAD"
-$form4.Fields["SearchType"] = "upload_filter"
-$form4.Fields["SortType"] = ""
-$form4.Fields["StudWithoutOpenProg"] = "USD"
-$form4.Fields["TaskScheduler.CurrentTask.Classname"] = "LTDB20_4.CRunUpload"
-$form4.Fields["TaskScheduler.CurrentTask.Friday"] = "false"
-$form4.Fields["TaskScheduler.CurrentTask.Monday"] = "false"
-$form4.Fields["TaskScheduler.CurrentTask.Saturday"] = "false"
-$form4.Fields["TaskScheduler.CurrentTask.SchdInterval"] = "1"
-$form4.Fields["TaskScheduler.CurrentTask.ScheduleType"] = "N"
-$form4.Fields["TaskScheduler.CurrentTask.ScheduledTimeDate"] = get-date -UFormat %m/%d/%Y #"05/07/2019"
-$form4.Fields["TaskScheduler.CurrentTask.ScheduledTimeTime"] = (get-date).AddMinutes($addtime).ToString("hh:mm tt") #Set forward 1 minute(s) "03:45 PM"
-$form4.Fields["TaskScheduler.CurrentTask.Sunday"] = "false"
-$form4.Fields["TaskScheduler.CurrentTask.TaskDescription"] = "Run Interface Upload (automated, AKA Ben Janelle is our hero all praise BEN)"
-$form4.Fields["TaskScheduler.CurrentTask.Thursday"] = "false"
-$form4.Fields["TaskScheduler.CurrentTask.Tuesday"] = "false"
-$form4.Fields["TaskScheduler.CurrentTask.Wednesday"] = "false"
-$form4.Fields["UpdateBlankRec"] = "false"  #"Only Update Blank Records" checkbox
-$form4.Fields["UpdateExistRec"] = "true" #"Update Existing Records" checkbox
-$form4.Fields["groupPredicate"] = "false"
-$form4.Fields["tableKey"] = ""
+    $jsonpayload = $params | ConvertTo-Json -Depth 3
 
-#Submit the Run Upload form with set variables
-$response7 = Invoke-WebRequest -Uri $runuploadUrl -WebSession $rb -Method POST -Body $form4.Fields
-Write-Host "Upload finished and task has been scheduled to run in $addtime minutes" -ForegroundColor Cyan -BackgroundColor Black
-}
-else 
-{Write-Host "Upload has finished to Eschool" -ForegroundColor Yellow -BackgroundColor Black
+    #Submit the Run Upload form with set variables
+    try {
+        $response2 = Invoke-RestMethod -Uri $runuploadUrl -WebSession $eSchoolSession -Method POST -Body $jsonpayload -ContentType "application/json; charset=UTF-8"
+        Write-Host "Upload finished and task has been scheduled to run in $addtime minutes" -ForegroundColor Cyan -BackgroundColor Black
+    } catch {
+        Write-Host "Error: Failed to scheduled task." -ForegroundColor Red
+        exit(1)
+    }
+    
+} else {
+    Write-Host "Upload has finished to Eschool" -ForegroundColor Yellow -BackgroundColor Black
 }
