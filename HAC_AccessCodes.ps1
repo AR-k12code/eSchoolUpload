@@ -68,7 +68,7 @@ $accesscodes | ForEach-Object {
 
 if ($sendemailviagam) {
     $records | ForEach-Object {
-        $body = (Get-Content "$PSScriptRoot\template.txt") -Replace '{{Guardian_name}}',"$($PSItem.Guardian_name)" -Replace '{{Student_name}}',"$($PSItem.Student_name)" -Replace '{{Guardian_accesscode}}',"$($Guardian_accesscode)"
+        $body = (Get-Content "$PSScriptRoot\template.txt") -Replace '{{Guardian_name}}',"$($PSItem.Guardian_name)" -Replace '{{Student_name}}',"$($PSItem.Student_name)" -Replace '{{Guardian_accesscode}}',"$($PSItem.Guardian_accesscode)"
         if ($sendtestemailto) {
             Write-Host "Info: We will only process one record and will send a sample email to $sendtestemailto"
             & gam sendemail $sendtestemailto subject "Home Access Center" message "$body" html
@@ -82,7 +82,7 @@ if ($sendemailviagam) {
 }
 
 if ($savecsv) {
-    if ($PSVersionTable.PSVersion -gt [version]7.0.0) {
+    if ($PSVersionTable.PSVersion -gt [version]"7.0.0") {
         $records | ConvertTo-Csv -UseQuotes AsNeeded -NoTypeInformation | Out-File Home_Access_Center_Codes.csv
     } else {
         #EVERYTHING GETS QUOTES!
