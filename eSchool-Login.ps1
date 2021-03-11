@@ -71,7 +71,7 @@ if (($response2.ParsedHtml.title -eq "Login") -or ($response2.StatusCode -ne 200
 
 $fields = $response2.InputFields | Group-Object -Property name -AsHashTable
 $database = $response2.RawContent | Select-String -Pattern 'selected="selected" value="....' -All | Select-Object -Property Matches | ForEach-Object { $PSItem.Matches[0].Value }
-$database = $Database.Substring($Database.Length-4,4)
+$database = $database -replace "[^0-9]" #$Database.Substring($Database.Length-4,4)
 #Set Environment
 $params2 = @{
     'ServerName' = $fields.'ServerName'.value
