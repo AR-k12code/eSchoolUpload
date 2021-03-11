@@ -23,8 +23,8 @@ if (-Not($eSchoolSession)) {
 if (-Not(Test-Path "$PSScriptRoot\temp")) { New-Item -Name temp -ItemType Directory -Force }
 
 #Get existing file hash.
-if (Test-Path "$PSScriptRoot\temp\HomeAccessCenterPasswords.csv") {
-    $existingHash = (Get-FileHash "$PSScriptRoot\temp\HomeAccessCenterPasswords.csv").Hash
+if (Test-Path "$PSScriptRoot\temp\HomeAccessPasswords.csv") {
+    $existingHash = (Get-FileHash "$PSScriptRoot\temp\HomeAccessPasswords.csv").Hash
 }
 
 #Download new file.
@@ -33,7 +33,7 @@ if (-Not($skipdownload)) {
 }
 
 #Compare existing hash to new hash to know if there is work to do.
-if ($existingHash -eq ((Get-FileHash "$PSScriptRoot\temp\HomeAccessCenterPasswords.csv").Hash) -and -Not($Force)) {
+if ($existingHash -eq ((Get-FileHash "$PSScriptRoot\temp\HomeAccessPasswords.csv").Hash) -and -Not($Force)) {
     Write-Host "Info: New file matches the existing file. No work to do."
     exit(0)
 }
