@@ -1,66 +1,35 @@
-#eSchool Run/Download File
-#2/8/2020 Craig Millsap - Still needs error control
+<#
+
+eSchool Run/Download File
+Craig Millsap - Gentry Public Schools
+3/10/2021
+
+Please don't edit this file unless you're pushing code back to the Github repository.
+It makes helping you later a LOT harder. These scripts are designed to be invoked from another script.
+If you need a modification please contact one of the AR-k12code developers.
+
+#>
 
 Param(
-[parameter(Position=0,mandatory=$true,Helpmessage="Eschool username")]
-[String]$username="SSOusername", #***Variable*** Change to default eschool usename
-[parameter(Mandatory=$false,HelpMessage="File for ADE SSO Password")]
-[String]$passwordfile="C:\Scripts\apscnpw.txt", #--- VARIABLE --- change to a file path for SSO password
-[parameter(Position=1,mandatory=$false,Helpmessage="Report Name")]
-[String]$reportname,
-[parameter(Position=2,mandatory=$false,Helpmessage="Report Name that starts with X")]
-[String]$reportnamelike,
-[parameter(Position=3,mandatory=$false,Helpmessage="Output File")]
-[String]$outputfile,
-[parameter(Position=4,mandatory=$false,Helpmessage="Run Download InterfaceID")]
-[String]$InterfaceID
+    [parameter(mandatory=$false,Helpmessage="eSchool username")][String]$username,
+    [parameter(mandatory=$false,HelpMessage="File for ADE SSO Password")][String]$passwordfile="C:\Scripts\apscnpw.txt",
+    [parameter(mandatory=$false,Helpmessage="Report Name")][String]$reportname,
+    [parameter(mandatory=$false,Helpmessage="Report Name that starts with X")][String]$reportnamelike,
+    [parameter(mandatory=$false,Helpmessage="Output File Name")][String]$outputfile,
+    [parameter(mandatory=$false,Helpmessage="Run Download InterfaceID")][String]$InterfaceID
 )
 
-Add-Type -AssemblyName System.Web
-
-#encrypted password file.
-If (Test-Path $passwordfile) {
-    $password = (New-Object pscredential "user",(Get-Content $passwordfile | ConvertTo-SecureString)).GetNetworkCredential().Password
-}
-Else {
-    Write-Host("Password file does not exist! [$passwordfile]. Please enter a password to be saved on this computer for scripts") -ForeGroundColor Yellow
-    Read-Host "Enter Password" -AsSecureString |  ConvertFrom-SecureString | Out-File $passwordfile
-    $password = Get-Content $passwordfile | ConvertTo-SecureString -AsPlainText -Force
+if (-Not($eSchoolSession)) {
+    . ./eSchool-Login.ps1 -username $username
 }
 
-$eSchoolDomain = 'https://eschool20.esp.k12.ar.us'
-$baseUrl = $eSchoolDomain + "/eSchoolPLUS20/"
-$loginUrl = $eSchoolDomain + "/eSchoolPLUS20/Account/LogOn?ReturnUrl=%2feSchoolPLUS20%2f"
-$envUrl = $eSchoolDomain + "/eSchoolPLUS20/Account/SetEnvironment/SessionStart"
-
-#Get Verification Token.
-$response = Invoke-WebRequest -Uri $loginUrl -SessionVariable rb
-
-#Login
-$params = @{
-    'UserName' = $username
-    'Password' = $password
-    '__RequestVerificationToken' = $response.InputFields[0].value
+if (-Not(Get-Variable -Name eSchoolSession)) {
+    Write-Host "Error: Failed to login to eSchool." -ForegroundColor Red
+    exit(1)
 }
-
-$response = Invoke-WebRequest -Uri $loginUrl -WebSession $rb -Method POST -Body $params -ErrorAction Stop
-if (($response.ParsedHtml.title -eq "Login") -or ($response.StatusCode -ne 200)) { write-host "Failed to login."; exit 1; }
-
-#Set Environment
-$params2 = @{
-    'ServerName' = $response.ParsedHtml.getElementById('ServerName').value
-    'EnvironmentConfiguration.Database' = $response.ParsedHtml.getElementById('EnvironmentConfiguration_Database').value
-    'UserErrorMessage' = ''
-    'EnvironmentConfiguration.SchoolYear' = $response.ParsedHtml.getElementById('EnvironmentConfiguration_SchoolYear').value
-    'EnvironmentConfiguration.SummerSchool' = 'false'
-    'EnvironmentConfiguration.ImpersonatedUser' = ''
-}
-$response2 = Invoke-WebRequest -Uri $envUrl -WebSession $rb -Method POST -Body $params2
-if (($response2.ParsedHtml.title -ne "Home") -or ($response.StatusCode -ne 200)) { write-host "Failed to Set Environment."; exit 1; }
 
 #run download task
 if ($InterfaceID) {
-    $runDownloadUrl = $eSchoolDomain + '/eSchoolPLUS20/Utility/RunDownload'
     $params = @{
         'SearchType' = 'download_filter'
         'SortType' = ''
@@ -69,7 +38,7 @@ if ($InterfaceID) {
         'ImportDirectory' = 'UD'
         'TxtImportDirectory' = ''
         'TaskScheduler.CurrentTask.Classname' = 'LTDB20_4.CRunDownload'
-        'TaskScheduler.CurrentTask.TaskDescription' = 'Run Interface Download'
+        'TaskScheduler.CurrentTask.TaskDescription' = "Run Interface Download $InterfaceID"
         'groupPredicate' = 'false'
         'Filter.Predicates[0].PredicateIndex' = '1'
         'tableKey' = 'reg'
@@ -104,25 +73,26 @@ if ($InterfaceID) {
         'TaskScheduler.CurrentTask.Sunday' = 'false'
     }
 
-    $response = Invoke-WebRequest -Uri $runDownloadUrl -WebSession $rb -Method POST -Body $params
+    Write-Host "Info: Starting $InterfaceID download."
+    $response = Invoke-RestMethod -Uri $runDownloadUrl -WebSession $eSchoolSession -Method POST -Body $params
 
     #wait until all tasks are completed
-    $tasksurl = $eSchoolDomain + '/eSchoolPLUS20/Task/TaskAndReportData?includeTaskCount=true&includeReports=true&maximumNumberOfReports=-1&includeTasks=true&runningTasksOnly=false'
+    $tasksurl = $baseUrl + '/Task/TaskAndReportData?includeTaskCount=true&includeReports=true&maximumNumberOfReports=-1&includeTasks=true&runningTasksOnly=false'
     do {
         Start-Sleep -Seconds 5
         try {
-            $response = Invoke-WebRequest -Uri $tasksurl -WebSession $rb
-            $inactiveTasks = $($response.ParsedHtml.body.innerHTML | ConvertFrom-Json | Select-Object -ExpandProperty InactiveTasks | Measure-Object).count
-            $activeTasks = $($response.ParsedHtml.body.innerHTML | ConvertFrom-Json | Select-Object -ExpandProperty ActiveTasks | Measure-Object).count
+            $response2 = Invoke-RestMethod -Uri $tasksurl -WebSession $eSchoolSession
+            $inactiveTasks = $($response2.InactiveTasks | Where-Object { $PSItem.TaskName -eq "Run Interface Download $InterfaceID" } | Measure-Object).count
+            $activeTasks = $($response2.ActiveTasks | Where-Object { $PSItem.TaskName -eq "Run Interface Download $InterfaceID" } | Measure-Object).count
 
             #check for ErrorOccurred -eq true
             if ($activeTasks -ge 1) {
-                $response.ParsedHtml.body.innerHTML | ConvertFrom-Json | Select-Object -ExpandProperty ActiveTasks | ForEach-Object {
+                $response2.ActiveTasks | ForEach-Object {
                     if ($PSItem.ErrorOccurred -eq "true") {
                         Write-Host "Error: Task", $PSItem.TaskName, "has failed. Clearing error." -ForegroundColor RED
-                        $clearErrorURL = $eschoolDomain + '/eSchoolPLUS20/Task/ClearErroredTask'
+                        $clearErrorURL = $eschoolDomain + '/Task/ClearErroredTask'
                         $errorpayload = @{ paramKey = $PSItem.TaskKey }
-                        $response = Invoke-WebRequest -Uri $clearErrorURL -WebSession $rb -Method POST -Body $errorpayload
+                        $response3 = Invoke-WebRequest -Uri $clearErrorURL -WebSession $eSchoolSession -Method POST -Body $errorpayload
                     }
                 }
             }
@@ -140,27 +110,34 @@ if ($InterfaceID) {
 
 #Get JSON of files and tasks.
 try {
-    $reportsurl = $eSchoolDomain + '/eSchoolPLUS20/Task/TaskAndReportData?includeTaskCount=true&includeReports=true&maximumNumberOfReports=-1&includeTasks=true&runningTasksOnly=false'
-    $response3 = Invoke-WebRequest -Uri $reportsurl -WebSession $rb
-    $reportsjson = $response3.ParsedHtml.body.innerHTML | ConvertFrom-Json | Select-Object -ExpandProperty Reports | Sort-Object -Property ModifiedDate -Descending
+    $reportsurl = $baseUrl + '/Task/TaskAndReportData?includeTaskCount=true&includeReports=true&maximumNumberOfReports=-1&includeTasks=true&runningTasksOnly=false'
+    $response3 = Invoke-RestMethod -Uri $reportsurl -WebSession $eSchoolSession
+    $reportsjson = $response3.Reports | Sort-Object -Property ModifiedDate -Descending
 
     if ($reportname) {
-        $fileurl = $reportsjson | Where-Object { $_.'DisplayName' -eq $reportname } | Select-Object -First 1
+        $file = $reportsjson | Where-Object { $_.'DisplayName' -eq $reportname } | Select-Object -First 1
     } elseif ($reportnamelike) {
-        $fileurl = $reportsjson | Where-Object { $_.'DisplayName' -like "$reportnamelike*" } | Select-Object -First 1
+        $file = $reportsjson | Where-Object { $_.'DisplayName' -like "$reportnamelike*" } | Select-Object -First 1
     } else {
-    	$fileurl = $reportsjson | Out-GridView -OutputMode Single
+    	$file = $reportsjson | Out-GridView -OutputMode Single
     }
 
     if (-Not($outputfile)) {
-        $outputfile = $fileurl.RawFileName
+        $outputfile = $file.RawFileName
     }
 
-    Invoke-WebRequest -Uri "$($baseUrl)/Reports$($fileurl.ReportPath -replace ('\\','/'))" -WebSession $rb -OutFile $outputfile
+    try {
+        Write-Host "Info: Attemtping to download ""$($file.RawFileName)"" to ""$outputfile"" ... " -NoNewline
+        Invoke-WebRequest -Uri "$($baseUrl)/Reports$($file.ReportPath -replace ('\\','/'))" -WebSession $eSchoolSession -OutFile $outputfile
+        Write-Host "Success."
+    } catch {
+        Write-Host "Error: Failed to download file. $_" -ForegroundColor RED
+        exit(1)
+    }
 
 } catch {
 	write-host 'Error getting reports list.'
-    exit 1
+    exit(1)
 }
 
 exit
