@@ -32,6 +32,12 @@ try {
 	#Login and store $eSchoolSession
 	. .\eSchool-Login.ps1 -username $username -passwordfile $passwordfile
 	
+
+	if (-Not(Get-Variable -Name eSchoolSession)) {
+		Write-Host "Error: Failed to login to eSchool." -ForegroundColor Red
+		exit(1)
+	}
+
 	#Run Download Definition for Student Emails
 	. .\eSchoolDownload.ps1 -reportname "student email download" -outputfile "$PSScriptRoot\temp\studentemails.csv" -InterfaceID EMLDL
 	

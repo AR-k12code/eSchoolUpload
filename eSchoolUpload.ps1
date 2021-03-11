@@ -31,6 +31,11 @@ if (-Not($eSchoolSession)) {
     . ./eSchool-Login.ps1 -username $username
 }
 
+if (-Not(Get-Variable -Name eSchoolSession)) {
+    Write-Host "Error: Failed to login to eSchool." -ForegroundColor Red
+    exit(1)
+}
+
 $fileName = Split-Path $InFile -leaf
 $enc = [System.Text.Encoding]::GetEncoding("iso-8859-1")
 $boundary = [guid]::NewGuid().ToString()

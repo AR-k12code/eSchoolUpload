@@ -23,6 +23,11 @@ if (-Not($eSchoolSession)) {
     . ./eSchool-Login.ps1 -username $username
 }
 
+if (-Not(Get-Variable -Name eSchoolSession)) {
+    Write-Host "Error: Failed to login to eSchool." -ForegroundColor Red
+    exit(1)
+}
+
 #run download task
 if ($InterfaceID) {
     $params = @{
@@ -127,11 +132,12 @@ try {
         Write-Host "Success."
     } catch {
         Write-Host "Error: Failed to download file. $_" -ForegroundColor RED
+        exit(1)
     }
 
 } catch {
 	write-host 'Error getting reports list.'
-    exit 1
+    exit(1)
 }
 
 exit
