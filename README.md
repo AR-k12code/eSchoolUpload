@@ -1,46 +1,61 @@
 # eSchoolUpload
 
-Ben Janelle - 5/7/2019 - First working version  
-Charles Weber 1/31/2020  
+> Ben Janelle - 5/7/2019 - First working version  
+Charles Weber 1/31/2020 - Parameters
 Craig Millsap 2/7/2020 - Automated Database Selection, Current Year, and Cognos Password  
 Craig Millsap 2/8/2020 - Generate HAC logins for Students and eSchool Download  
-Craig Millsap 2/9/2020 - Sample Script with Download/Upload Definitions PDF
-Craig Millsap 10/12/2020 - Fix for stuck tasks that would indefinitely hang script.
-Craig Millsap 11/16/2020 - Choose the username format for Generating the HAC logins.
+Craig Millsap 2/9/2020 - Sample Script with Download/Upload Definitions PDF  
+Craig Millsap 10/12/2020 - Fix for stuck tasks that would indefinitely hang script.  
+Craig Millsap 11/16/2020 - Choose the username format for Generating the HAC logins.  
+Craig Millsap 3/11/2021 - Major overhaul. Now works with Powershell 7. Designed to be invoked with paramters eSchool Email Upload is now District Agnostic. Email Guardians Access Codes via GAM. Generate HAC Logins for Guardians and Students. Use CognosDefaults.ps1 if exists.
 
-eSchool Scripts
+
+# eSchool Scripts
 tldr:These scripts log you into eSchool, runs Upload or Download definitions, Uploads files or Downloads files. This requires a completed and ready file to upload, pre-built Upload or Download Definitions. Sample script and Upload/Download definitions are provided.
 
 The initial use case for this was uploading and then inserting/updating student emails into their mailing contact records.
 Our office folks often mis-type student email address, or don't put them in at all, and then those records don't come accross to Clever, iStation, etc., causing various issues for students.
 
-eSchoolDownload.ps1
--------------------------------------------------------------------------
-./eSchoolDownload.ps1  
+# eSchoolUpload.ps1
+````
+.\eSchoolUpload.ps1
+  -username 0401cmillsap
+  -InFile "students.csv"          #Any file you want uploaded to your user directory.
+  -InterfaceID ASDFG              #Any Upload Definition you want to run after uploading the file.
+  -RunMode V                      #V for Verify or R for Run.
+````
+
+# eSchoolDownload.ps1
+````
+.\eSchoolDownload.ps1  
   -username 0000username  
-  -reportname "studentemails" #Files that have a specific name  
-  -reportnamelike "HomeAccessPasswords" #Files that have the timestamp put at the end. This will download the latest version.  
-  -outputfile #Path to place downloaded file. If not specified it will use the filename from eSchool  
-  -InterfaceID #Your Download Definition. This will create the file specified by reportname. Script waits until all tasks are complete. This must be 5 characters. If you have a 3 character InterfaceID you must character pad it with spaces. Example:"WEB  "
+  -reportname "studentemails"             #Files that have a specific name  
+  -reportnamelike "HomeAccessPasswords"   #Files that have the timestamp put at the end. This will download the latest version.  
+  -outputfile                             #Path to place downloaded file. If not specified it will use the filename from eSchool.
+  -InterfaceID                            #Your Download Definition. This will create the file specified by reportname. Script waits until all tasks are complete. This must be 5 characters. If you have a 3 character InterfaceID you must character pad it with spaces. Example:"WEB  "
+````
 
-eSchoolGenerateHACLogins.ps1
--------------------------------------------------------------------------
-./eSchoolGenerateHACLogins.ps1  
+# eSchoolGenerateHACLogins.ps1
+````
+.\eSchoolGenerateHACLogins.ps1  
   -username 0000username  
-  -buildings "1,2,3" #comma separated building number
-  -GenerateLoginAs 3 #choose your format
-  
-Troubleshooting command examples
--------------------------------------------------------------------------
-$form | Format-List :Shows the form method, action, and fields (with what they're currently set to, if space allows)
-$form.Fields  :Shows all the individual fields, and what they're currently set to
+  -buildings "1,2,3"                       #Comma separated building number
+  -GenerateLoginAs 7                       #Choose your format. Documented in the script.
+  -Guardians                               #Generate guardians only.
+  -GuardianPriority 2                      #Up to this number Priority Guardian.
+````  
 
-Could also do something like: $response.Forms[0] | Format-List
+# .\Upload_Student_Email_Addresses.ps1
+````
+.\Upload_Student_Email_Addresses.ps1
+  -username 0000username
+  -ADField EmployeeID                      #What Active Directory Field do we need to match on?
+  -skipupload                              #Create upload files but don't upload them.
+````
+# Download\Upload Definitions
+Some sample definitions are supplied in the Definitions folder. Using Powershell 7 can you can run:
+````
+.\Definitions\Create_Definitions.ps1
+````
+This will create three definitions used to accomplish this task. This will not overwrite any existing definitions. The definitions will need to be named EMLDL,EMLUP,EMLAC.
 
-Sources
--------------------------------------------------------------------------
-"Man" page (specifically "Example 2"): https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-webrequest?view=powershell-4.0
-Decent general overview of Invoke-WebRequest: https://www.adamtheautomator.com/invoke-webrequest-powershell/
-For multipart/form-data I used a (way) simplified version of: http://blog.majcica.com/2016/01/13/powershell-tips-and-tricks-multipartform-data-requests/
-
-Special thanks to all the Cognos Downloader folks.  I don't even know who all did that initial work, but you proved there was a way!
