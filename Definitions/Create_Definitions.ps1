@@ -1,3 +1,5 @@
+#Requires -Version 7.0.0
+
 <#
 
 This script will create the Upload/Downlaod Definitions needed for uploading email addresses to eSchoool.

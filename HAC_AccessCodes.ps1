@@ -10,6 +10,7 @@ Param(
     [parameter(mandatory=$false)][switch]$sendemailviagam, #Send an email directly to the parent with the information. Template is located at template.txt
     [parameter(mandatory=$false)][string]$sendtestemailto, #Send a single email to this account instead of sending it to the actual parent.
     [parameter(mandatory=$false)][switch]$savecsv,
+    [parameter(mandatory=$false)][switch]$skipdownload,
     [parameter(mandatory=$false)][switch]$Force #Do not compare to existing downloaded file. Send anyways!
 )
 
@@ -19,26 +20,28 @@ if (-Not($eSchoolSession)) {
 }
 
 #Needed directory.
-if (-Not(Test-Path .\temp)) { New-Item -Name temp -ItemType Directory -Force }
+if (-Not(Test-Path "$PSScriptRoot\temp")) { New-Item -Name temp -ItemType Directory -Force }
 
 #Get existing file hash.
-if (Test-Path .\temp\HomeAccessCenterPasswords.csv) {
-    $existingHash = (Get-FileHash .\temp\HomeAccessCenterPasswords.csv).Hash
+if (Test-Path "$PSScriptRoot\temp\HomeAccessCenterPasswords.csv") {
+    $existingHash = (Get-FileHash "$PSScriptRoot\temp\HomeAccessCenterPasswords.csv").Hash
 }
 
 #Download new file.
-.\eSchoolDownload.ps1 -username 0403cmillsap -reportnamelike "HomeAccessPasswords" -outputfile "temp\HomeAccessPasswords.csv"
+if (-Not($skipdownload)) {
+    .\eSchoolDownload.ps1 -username 0403cmillsap -reportnamelike "HomeAccessPasswords" -outputfile "$PSScriptRoot\temp\HomeAccessPasswords.csv"
+}
 
 #Compare existing hash to new hash to know if there is work to do.
-if ($existingHash -eq ((Get-FileHash .\temp\HomeAccessCenterPasswords.csv).Hash) -and -Not($Force)) {
+if ($existingHash -eq ((Get-FileHash "$PSScriptRoot\temp\HomeAccessCenterPasswords.csv").Hash) -and -Not($Force)) {
     Write-Host "Info: New file matches the existing file. No work to do."
     exit(0)
 }
 
 #Import Latest File and replace LF with semicolon then replace record delimeter with line return.
-(Get-Content -Path .\temp\HomeAccessPasswords.csv -Raw).replace("`n",';').replace('#',"`r`n") | Out-File -Force .\temp\HAC_Guardian_AccessCodes.csv -NoNewline
+(Get-Content -Path "$PSScriptRoot\temp\HomeAccessPasswords.csv" -Raw).replace("`n",';').replace('#',"`r`n") | Out-File -Force "$PSScriptRoot\temp\HAC_Guardian_AccessCodes.csv" -NoNewline
 
-$accesscodes = Import-Csv .\temp\HAC_Guardian_AccessCodes.csv -Delimiter '|'
+$accesscodes = Import-Csv "$PSScriptRoot\temp\HAC_Guardian_AccessCodes.csv" -Delimiter '|'
 
 $records = @()
 
@@ -65,7 +68,7 @@ $accesscodes | ForEach-Object {
 
 if ($sendemailviagam) {
     $records | ForEach-Object {
-        $body = (Get-Content .\template.txt) -Replace '{{Guardian_name}}',"$($PSItem.Guardian_name)" -Replace '{{Student_name}}',"$($PSItem.Student_name)" -Replace '{{Guardian_accesscode}}',"$($Guardian_accesscode)"
+        $body = (Get-Content "$PSScriptRoot\template.txt") -Replace '{{Guardian_name}}',"$($PSItem.Guardian_name)" -Replace '{{Student_name}}',"$($PSItem.Student_name)" -Replace '{{Guardian_accesscode}}',"$($Guardian_accesscode)"
         if ($sendtestemailto) {
             Write-Host "Info: We will only process one record and will send a sample email to $sendtestemailto"
             & gam sendemail $sendtestemailto subject "Home Access Center" message "$body" html

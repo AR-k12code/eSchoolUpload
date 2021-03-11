@@ -23,7 +23,11 @@ Param(
 )
 
 try {
-	
+
+	if (-Not(Test-Path("$PSScriptRoot\temp\"))) {
+		New-Item -Name "temp" -ItemType Directory -Force
+	}
+
 	#Login and store $eSchoolSession
 	. .\eSchool-Login.ps1 -username $username -passwordfile $passwordfile
 	
@@ -76,14 +80,31 @@ try {
 
 		Write-Host "Info: Found $($records.Count) mismatched or missing email addresses in eSchool. Uploading."
 		#Export CSV without header row.
-		$records | ConvertTo-CSV -UseQuotes Never -NoTypeInformation | Select-Object -Skip 1 | Out-File "$PSScriptRoot\temp\student_email_upload.csv" -Force
+		if ($PSVersionTable.PSVersion -ge [version]"7.0.0") {
+			$records | ConvertTo-CSV -UseQuotes Never -NoTypeInformation | Select-Object -Skip 1 | Out-File "$PSScriptRoot\temp\student_email_upload.csv" -Force
+		} else {
+			$lines = ''
+			$records | ForEach-Object {
+				$lines += "$($PSItem.'CONTACT_ID'),$($PSItem.'EMAIL')`r`n"
+			}
+			$lines | Out-File "$PSScriptRoot\temp\student_email_upload.csv" -Force -NoNewline
+		}
+		
 		. .\eSchoolUpload.ps1 -InFile "$PSScriptRoot\temp\student_email_upload.csv" -InterfaceID EMLUP -RunMode R
 
 	}
 
 	if ($webaccess.Count -ge 1) {
 		#Create Web Access Flag CSV and Run EMLWA
-		$webaccess | ConvertTo-CSV -UseQuotes Never -NoTypeInformation | Select-Object -Skip 1 | Out-File "$PSScriptRoot\temp\webaccess_upload.csv" -Force
+		if ($PSVersionTable.PSVersion -ge [version]"7.0.0") {
+			$webaccess | ConvertTo-CSV -UseQuotes Never -NoTypeInformation | Select-Object -Skip 1 | Out-File "$PSScriptRoot\temp\webaccess_upload.csv" -Force
+		} else {
+			$lines = ''
+			$webaccess | ForEach-Object {
+				$lines += "$($PSItem.'CONTACT_ID'),$($PSItem.'STUDENT_ID'),$($PSItem.'WEB_ACCESS'),$($PSItem.'CONTACT_TYPE')`r`n"
+			}
+			$lines | Out-File "$PSScriptRoot\temp\webaccess_upload.csv" -Force -NoNewline
+		}
 		. .\eSchoolUpload.ps1 -InFile "$PSScriptRoot\temp\webaccess_upload.csv" -InterfaceID EMLAC -RunMode R -addtime 0
 	}
 		
