@@ -5,7 +5,8 @@ Gentry Public Schools
 3/11/2021
 
 This script will verify that eSchool students have the generated AD email address on their eSchool Account.
-It will also make sure that the WEB_ACCESS flag is set on their account.
+It will also make sure that the WEB_ACCESS flag is set on the students accounts.
+You can also enable the WEB_ACCESS flag for guardians up to a certain priority.
 
 Be sure you created the Download and Upload Definitions before running this.
 .\Definitions\Create_Definitions.ps1 should make them for you.
@@ -20,7 +21,11 @@ Param(
     [parameter(Mandatory=$false,Helpmessage="eSchool username")][string]$username,
     [parameter(Mandatory=$false,HelpMessage="File for ADE SSO Password")][string]$passwordfile="C:\Scripts\apscnpw.txt",
 	[parameter(Mandatory=$false,HelpMessage="What AD Field Contains your Student ID?")][string]$ADField="EmployeeNumber",
-	[parameter(Mandatory=$false,HelpMessage="Skip uploading to eSchool")][switch]$skipupload
+	[parameter(Mandatory=$false,HelpMessage="Skip uploading to eSchool")][switch]$skipupload,
+	[parameter(mandatory=$false,Helpmessage="Run mode, V for verfiy and R to commit data changes to eschool")][ValidateSet("R","V")][string]$RunMode="V",
+	[parameter(Mandatory=$false,HelpMessage="Enable Student Web Access Flag")][switch]$EnableWebAccess,
+	[parameter(mandatory=$false,Helpmessage="Do you want to turn on WEB_ACCESS for Guardians?")][switch]$EnableGuardianWebAccess,
+	[parameter(mandatory=$false,Helpmessage="If EnableGuardianWebAccess up to what Priority of Guardian do you want?")][int]$GuardianPriority = 1
 )
 
 try {
@@ -44,8 +49,8 @@ try {
 	#Get AD Accounts and build Hash Table on $ADField
 	$adAccounts = Get-ADUser -Filter { Enabled -eq $True -and $ADField -like "*" } -Properties $ADField,Mail | Group-Object -Property $ADField -AsHashTable
 
-	#Match student id's to AD and pull email address.
-	$eSchoolStudents = Import-Csv "$PSScriptRoot\temp\studentemails.csv"
+	#Select only Students and their mailing record to do the match.
+	$eSchoolStudents = Import-Csv "$PSScriptRoot\temp\studentemails.csv" | Where-Object { $PSItem.'CONTACT_PRIORITY' -eq 0 -AND $PSItem.'CONTACT_TYPE' -eq 'M' }
 	
 	$records = @()
 	$webaccess = @()
@@ -68,13 +73,15 @@ try {
 		
 			}
 
-			if ($student.'WEB_ACCESS' -ne 'Y') {
-				#Always ensure students webaccess flag is enabled.
-				$webaccess += [PSCustomObject]@{
-					CONTACT_ID = $student.'CONTACT_ID'
-					STUDENT_ID = $studentId
-					WEB_ACCESS = 'Y'
-					CONTACT_TYPE = 'M'
+			if ($EnableWebAccess) {
+				if ($student.'WEB_ACCESS' -ne 'Y') {
+					#Always ensure students webaccess flag is enabled.
+					$webaccess += [PSCustomObject]@{
+						CONTACT_ID = $student.'CONTACT_ID'
+						STUDENT_ID = $studentId
+						WEB_ACCESS = 'Y'
+						CONTACT_TYPE = 'M'
+					}
 				}
 			}
 
@@ -98,9 +105,26 @@ try {
 		}
 		
 		if (-Not($skipupload)) {
-			. .\eSchoolUpload.ps1 -InFile "$PSScriptRoot\temp\student_email_upload.csv" -InterfaceID EMLUP -RunMode R
+			. .\eSchoolUpload.ps1 -InFile "$PSScriptRoot\temp\student_email_upload.csv" -InterfaceID EMLUP -RunMode $RunMode -addtime 0
 		}
 
+	}
+
+	if ($EnableGuardianWebAccess) {
+
+		Import-Csv "$PSScriptRoot\temp\studentemails.csv" | Where-Object { $PSItem.'CONTACT_PRIORITY' -le $GuardianPriority -AND $PSItem.'CONTACT_TYPE' -eq 'G' } | ForEach-Object {
+
+			$guardian = $PSItem
+			if ($guardian.'WEB_ACCESS' -ne 'Y') {
+				#Ensure guardian webaccess flag is enabled.
+				$webaccess += [PSCustomObject]@{
+					CONTACT_ID = $guardian.'CONTACT_ID'
+					STUDENT_ID = $guardian.'STUDENT_ID' #This is the student they are attached to. Guardian can be attached to multiple students.
+					WEB_ACCESS = 'Y'
+					CONTACT_TYPE = 'G'
+				}
+			}
+		}
 	}
 
 	if ($webaccess.Count -ge 1) {
@@ -116,7 +140,7 @@ try {
 		}
 		
 		if (-Not($skipupload)) {
-			. .\eSchoolUpload.ps1 -InFile "$PSScriptRoot\temp\webaccess_upload.csv" -InterfaceID EMLAC -RunMode R -addtime 0
+			. .\eSchoolUpload.ps1 -InFile "$PSScriptRoot\temp\webaccess_upload.csv" -InterfaceID EMLAC -RunMode $RunMode -addtime 0
 		}
 	}
 		
