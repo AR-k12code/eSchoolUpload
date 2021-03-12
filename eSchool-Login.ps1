@@ -32,6 +32,8 @@ $hacloginsurl = $baseUrl + '/HomeAccess/Utility/GenerateLogins'
 $uploadUrl = $baseUrl + "/Utility/UploadFile"
 $runuploadUrl = $baseUrl + "/Utility/RunUpload"
 $runDownloadUrl = $baseUrl + '/Utility/RunDownload'
+$massUpdateUrl = $baseUrl + "/Utility/RunMassUpdate"
+$massUpdateFilterResultsUrl = "/Utility/GetContactsMUFilterResultsGridData"
 
 if (-Not($passwordfile)) {
     $passwordfile = "C:\Scripts\apscnpw.txt"

@@ -94,6 +94,11 @@ if ($sendemailviagam) {
 
     $records | ForEach-Object {
         $body = (Get-Content "$PSScriptRoot\template.txt") -Replace '{{Guardian_name}}',"$($PSItem.Guardian_name)" -Replace '{{Student_name}}',"$($PSItem.Student_name)" -Replace '{{Guardian_accesscode}}',"$($PSItem.Guardian_accesscode)"
+        
+        if ($PSItem.Guardian_email -notlike "*@*.*") { 
+            Write-Host "Error: Guardian $($PSItem.Guardian_name) for $($PSItem.Student_id) does not have a valid email address."
+        }
+        
         if ($sendtestemailto) {
             Write-Host "Info: We will only process one record and will send a sample email to $sendtestemailto"
             & gam sendemail $sendtestemailto from $fromemail subject $emailsubject message "$body" html

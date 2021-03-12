@@ -51,6 +51,10 @@ Our office folks often mis-type student email address, or don't put them in at a
   -username 0000username
   -ADField EmployeeID                      #What Active Directory Field do we need to match on?
   -skipupload                              #Create upload files but don't upload them.
+  -EnableWebAccess                         #Optionally enable WEB_ACCESS flag on student accounts.
+  -EnableGuardianWebAccess                 #Enable Guardians WEB_ACCESS flag.
+  -GuardianPriority 2                      #Enable WEB_ACCESS for Guardians up to this Priority Number.
+  -RunMode R                               #Everything is run in VERIFY mode by default.
 ````
 # Download\Upload Definitions
 Some sample definitions are supplied in the Definitions folder. Using Powershell 7 can you can run:

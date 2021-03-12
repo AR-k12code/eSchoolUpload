@@ -53,7 +53,7 @@ $ddhash["UploadDownloadDefinition"]["InterfaceHeaders"] += @{
     "DelimitChar" = ","
     "UseChangeFlag" = $False
     "TableAffected" = "reg_contact"
-    "AdditionalSql" = "INNER JOIN reg_stu_contact ON reg_stu_contact.contact_id = reg_contact.contact_id INNER JOIN reg ON reg.student_id = reg_stu_contact.student_id AND reg_stu_contact.contact_priority = 0 AND reg_stu_contact.contact_type = 'M'"
+    "AdditionalSql" = "INNER JOIN reg_stu_contact ON reg_stu_contact.contact_id = reg_contact.contact_id INNER JOIN reg ON reg.student_id = reg_stu_contact.student_id" # AND reg_stu_contact.contact_priority = 0 AND reg_stu_contact.contact_type = 'M'"
     "ColumnHeaders" = $True
     "Delete" = $False
     "CanDelete" = $True
@@ -66,6 +66,8 @@ $rows += @{ table = "reg"; column = "STUDENT_ID"; length = 20 }
 $rows += @{ table = "reg_contact"; column = "CONTACT_ID"; length = 20 }
 $rows += @{ table = "reg_contact"; column = "EMAIL"; length = 250 }
 $rows += @{ table = "reg_stu_contact"; column = "WEB_ACCESS"; length = 1 }
+$rows += @{ table = "reg_stu_contact"; column = "CONTACT_PRIORITY"; length = 2 }
+$rows += @{ table = "reg_stu_contact"; column = "CONTACT_TYPE"; length = 1 }
 
 
 $columns = @()
