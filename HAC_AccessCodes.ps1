@@ -24,7 +24,7 @@ Param(
 
 #Login and get session.
 if (-Not($eSchoolSession)) {
-    . ./eSchool-Login.ps1 -username $username
+    . $PSScriptRoot\eSchool-Login.ps1 -username $username
 }
 
 if (-Not(Get-Variable -Name eSchoolSession)) {
@@ -43,7 +43,7 @@ if (Test-Path "$PSScriptRoot\temp\HomeAccessPasswords.csv") {
 #Download new file.
 if (-Not($skipdownload)) {
     try {
-        .\eSchoolDownload.ps1 -username $username -reportnamelike "HomeAccessPasswords" -outputfile "$PSScriptRoot\temp\HomeAccessPasswords.csv"
+        & $PSScriptRoot\eSchoolDownload.ps1 -username $username -reportnamelike "HomeAccessPasswords" -outputfile "$PSScriptRoot\temp\HomeAccessPasswords.csv"
         if ($LASTEXITCODE -ge 1) { Throw }
     } catch {
         write-host "Error: Could not download a file named HomeAccessPasswords* from $username directory." -ForegroundColor Red

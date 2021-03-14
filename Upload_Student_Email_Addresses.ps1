@@ -35,7 +35,7 @@ try {
 	}
 
 	#Login and store $eSchoolSession
-	. .\eSchool-Login.ps1 -username $username -passwordfile $passwordfile
+	. $PSScriptRoot\eSchool-Login.ps1 -username $username -passwordfile $passwordfile
 	
 
 	if (-Not(Get-Variable -Name eSchoolSession)) {
@@ -44,7 +44,7 @@ try {
 	}
 
 	#Run Download Definition for Student Emails
-	. .\eSchoolDownload.ps1 -reportname "student email download" -outputfile "$PSScriptRoot\temp\studentemails.csv" -InterfaceID EMLDL
+	. $PSScriptRoot\eSchoolDownload.ps1 -reportname "student email download" -outputfile "$PSScriptRoot\temp\studentemails.csv" -InterfaceID EMLDL
 	
 	#Get AD Accounts and build Hash Table on $ADField
 	$adAccounts = Get-ADUser -Filter { Enabled -eq $True -and $ADField -like "*" } -Properties $ADField,Mail | Group-Object -Property $ADField -AsHashTable
@@ -105,7 +105,7 @@ try {
 		}
 		
 		if (-Not($skipupload)) {
-			. .\eSchoolUpload.ps1 -InFile "$PSScriptRoot\temp\student_email_upload.csv" -InterfaceID EMLUP -RunMode $RunMode -addtime 0
+			. $PSScriptRoot\\eSchoolUpload.ps1 -InFile "$PSScriptRoot\temp\student_email_upload.csv" -InterfaceID EMLUP -RunMode $RunMode -addtime 0
 		}
 
 	}
@@ -140,7 +140,7 @@ try {
 		}
 		
 		if (-Not($skipupload)) {
-			. .\eSchoolUpload.ps1 -InFile "$PSScriptRoot\temp\webaccess_upload.csv" -InterfaceID EMLAC -RunMode $RunMode -addtime 0
+			. $PSScriptRoot\eSchoolUpload.ps1 -InFile "$PSScriptRoot\temp\webaccess_upload.csv" -InterfaceID EMLAC -RunMode $RunMode -addtime 0
 		}
 	}
 		
