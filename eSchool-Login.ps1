@@ -15,9 +15,9 @@ Param(
     [parameter(Mandatory=$false,HelpMessage="File for ADE SSO Password")][String]$passwordfile="C:\Scripts\apscnpw.txt"
 )
 
-if (Test-Path "..\CognosDefaults.ps1") {
+if (Test-Path "$PSScriptRoot\..\CognosDefaults.ps1") {
     #Use CognosDefaults if exists
-    . ..\CognosDefaults.ps1
+    . $PSScriptRoot\..\CognosDefaults.ps1
 }
 
 if ($null -eq $username -or $username -eq '') {

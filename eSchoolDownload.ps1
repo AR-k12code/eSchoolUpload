@@ -20,7 +20,7 @@ Param(
 )
 
 if (-Not($eSchoolSession)) {
-    . ./eSchool-Login.ps1 -username $username
+    . $PSScriptRoot\eSchool-Login.ps1 -username $username
 }
 
 if (-Not(Get-Variable -Name eSchoolSession)) {
