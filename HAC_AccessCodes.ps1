@@ -97,6 +97,7 @@ if ($sendemailviagam) {
         
         if ($PSItem.Guardian_email -notlike "*@*.*") { 
             Write-Host "Error: Guardian $($PSItem.Guardian_name) for $($PSItem.Student_id) does not have a valid email address."
+            return
         }
         
         if ($sendtestemailto) {
@@ -105,6 +106,7 @@ if ($sendemailviagam) {
             exit(0)
         } else {
             #send it.
+            Write-Host "Info: Sending $($PSItem.Student_id) guardian $($PSItem.Guardian_name) HAC email to $($PSItem.Guardian_email)"
             & gam sendemail $PSItem.Guardian_email from $fromemail subject $emailsubject message "$body" html
         }
         
@@ -113,6 +115,7 @@ if ($sendemailviagam) {
 
 if ($savecsv) {
     if ($PSVersionTable.PSVersion -gt [version]"7.0.0") {
+        Write-Host "Info: Saving CSV file to $($PSScriptRoot)\Home_Access_Center_Codes.csv"
         $records | ConvertTo-Csv -UseQuotes AsNeeded -NoTypeInformation | Out-File "$PSScriptRoot\Home_Access_Center_Codes.csv"
     } else {
         #EVERYTHING GETS QUOTES!
