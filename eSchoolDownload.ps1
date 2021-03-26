@@ -16,7 +16,9 @@ Param(
     [parameter(mandatory=$false,Helpmessage="Report Name")][String]$reportname,
     [parameter(mandatory=$false,Helpmessage="Report Name that starts with X")][String]$reportnamelike,
     [parameter(mandatory=$false,Helpmessage="Output File Name")][String]$outputfile,
-    [parameter(mandatory=$false,Helpmessage="Run Download InterfaceID")][String]$InterfaceID
+    [parameter(mandatory=$false,Helpmessage="Run Download InterfaceID")][String]$InterfaceID,
+    [parameter(Mandatory=$false)][switch]$TrimCSVWhiteSpace, #Remove Spaces in CSV files. This requires Powershell 7.1+
+    [parameter(Mandatory=$false)][switch]$CSVUseQuotes #If you Trim CSV White Space do you want to wrap everything in quotes?
 )
 
 if (-Not($eSchoolSession)) {
@@ -130,6 +132,40 @@ try {
         Write-Host "Info: Attemtping to download ""$($file.RawFileName)"" to ""$outputfile"" ... " -NoNewline
         Invoke-WebRequest -Uri "$($baseUrl)/Reports$($file.ReportPath -replace ('\\','/'))" -WebSession $eSchoolSession -OutFile $outputfile
         Write-Host "Success."
+
+        if ($TrimCSVWhiteSpace) {
+            if ($PSVersionTable.PSVersion -lt [version]"7.1.0") {
+                Write-Host "Error: You specified you wanted to remove the CSV Whitespaces but his requires Powershell 7.1. Not modifying downloaded file." -ForegroundColor RED
+            } else {
+
+                #Find delimeter. This could be pipe or comma.
+                $headers = Get-Content "$outputfile" | Select-Object -First 1
+                if ($headers.IndexOfAny(',') -gt $headers.IndexOfAny('|')) {
+                    $delimeter = ','
+                } else {
+                    $delimeter = '|'
+                }
+
+                Write-Host "Info: Cleaning up white spaces in CSV."
+                $filecontents = Import-CSV "$outputfile" -Delimiter $delimeter
+                $filecontents | Foreach-Object {  
+                    $_.PSObject.Properties | Foreach-Object {
+                        try { $_.Value = $_.Value.Trim() } catch {} #after using pipe delimeter this fails sometimes.
+                    }
+                }
+
+                if ($CSVUseQuotes) {
+                    Write-Host "Info: Exporting CSV using quotes."
+                    $filecontents | Export-Csv -UseQuotes Always -Path $outputfile -Force
+                } else {
+                    $filecontents | Export-Csv -UseQuotes AsNeeded -Path $outputfile -Force
+                }
+
+            }
+        }
+
+
+
     } catch {
         Write-Host "Error: Failed to download file. $_" -ForegroundColor RED
         exit(1)
