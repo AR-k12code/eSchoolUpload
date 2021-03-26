@@ -141,16 +141,16 @@ try {
                 #Find delimeter. This could be pipe or comma.
                 $headers = Get-Content "$outputfile" | Select-Object -First 1
                 if ($headers.IndexOfAny(',') -gt $headers.IndexOfAny('|')) {
-                    $delimeter = ','
+                    $delimiter = ','
                 } else {
-                    $delimeter = '|'
+                    $delimiter = '|'
                 }
 
                 Write-Host "Info: Cleaning up white spaces in CSV."
-                $filecontents = Import-CSV "$outputfile" -Delimiter $delimeter
+                $filecontents = Import-CSV "$outputfile" -Delimiter $delimiter
                 $filecontents | Foreach-Object {  
                     $_.PSObject.Properties | Foreach-Object {
-                        try { $_.Value = $_.Value.Trim() } catch {} #after using pipe delimeter this fails sometimes.
+                        try { $_.Value = $_.Value.Trim() } catch {} #after using pipe delimiter this fails sometimes.
                     }
                 }
 
