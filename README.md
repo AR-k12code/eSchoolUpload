@@ -11,7 +11,7 @@ Craig Millsap 3/11/2021 - Major overhaul. Now works with Powershell 7. Designed 
 Craig Millsap 3/29/2021 - Now includes the Table Exports scripts so you can export any eSchool Tables you may need to process locally.  
 
 # eSchool Scripts
-tldr:These scripts log you into eSchool, runs Upload or Download definitions, Uploads files or Downloads files. This requires a completed and ready file to upload, pre-built Upload or Download Definitions. Sample script and Upload/Download definitions are provided.
+These scripts log you into eSchool, runs Upload or Download definitions, Uploads files or Downloads files. This requires a completed and ready file to upload, pre-built Upload or Download Definitions. Sample script and Upload/Download definitions are provided.
 
 The initial use case for this was uploading and then inserting/updating student emails into their mailing contact records.
 Our office folks often mis-type student email address, or don't put them in at all, and then those records don't come across to Clever, iStation, etc., causing various issues for students.
