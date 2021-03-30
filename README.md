@@ -7,8 +7,8 @@ Craig Millsap 2/8/2020 - Generate HAC logins for Students and eSchool Download
 Craig Millsap 2/9/2020 - Sample Script with Download/Upload Definitions PDF  
 Craig Millsap 10/12/2020 - Fix for stuck tasks that would indefinitely hang script.  
 Craig Millsap 11/16/2020 - Choose the username format for Generating the HAC logins.  
-Craig Millsap 3/11/2021 - Major overhaul. Now works with Powershell 7. Designed to be invoked with parameters eSchool Email Upload is now District Agnostic. Email Guardians Access Codes via GAM. Generate HAC Logins for Guardians and Students. Use CognosDefaults.ps1 if exists.
-
+Craig Millsap 3/11/2021 - Major overhaul. Now works with Powershell 7. Designed to be invoked with parameters eSchool Email Upload is now District Agnostic. Email Guardians Access Codes via GAM. Generate HAC Logins for Guardians and Students. Use CognosDefaults.ps1 if exists.  
+Craig Millsap 3/29/2021 - Now includes the Table Exports scripts so you can export any eSchool Tables you may need to process locally.  
 
 # eSchool Scripts
 tldr:These scripts log you into eSchool, runs Upload or Download definitions, Uploads files or Downloads files. This requires a completed and ready file to upload, pre-built Upload or Download Definitions. Sample script and Upload/Download definitions are provided.
