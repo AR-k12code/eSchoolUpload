@@ -1,4 +1,5 @@
 *.csv
+!TableExports\eSchoolDatabase.csv
 Gentry-UpdateEmailAddresses.ps1
 HomeAccess*.txt
 temp\

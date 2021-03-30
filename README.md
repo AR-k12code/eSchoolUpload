@@ -63,3 +63,21 @@ Some sample definitions are supplied in the Definitions folder. Using Powershell
 ````
 This will create three definitions used to accomplish this task. This will not overwrite any existing definitions. The definitions will need to be named EMLDL,EMLUP,EMLAC.
 
+# eSchool Table Exports
+This script creates a Download Definition for the eSchool tables specified in the $tables variable.
+
+The hard coded ones are @('REG','REG_STU_CONTACT','REG_CONTACT')
+
+You can customize what tables you want in your export by specifying the $tables variable then running the script.
+````
+$tables = @('REG','REG_STU_CONTACT_ALERT')
+.\TableExports\eSchool_Table_Exports.ps1 -username "0401cmillsap" -DefinitionName "EXPDB"
+.\eSchoolDownload.ps1 -username "0401cmillsap" -InterfaceID "EXPDB" -reportname "REG CONTACT" -TrimCSVWhiteSpace
+.\eSchoolDownload.ps1 -username "0401cmillsap" -reportname "REG STU CONTACT" -TrimCSVWhiteSpace
+.\eSchoolDownload.ps1 -username "0401cmillsap" -reportname "REG CONTACT" -TrimCSVWhiteSpace
+etc...
+````
+
+Alternatively you can schedule your Download Definitions to run a specific time then download the files that should be available in your directory.
+
+Note: The delimiter is PIPE to work with fields that have commas in them. -TrimCSVWhiteSpace converts the file from PIPE delimiter to comma.
