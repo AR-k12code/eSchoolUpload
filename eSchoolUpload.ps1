@@ -30,6 +30,9 @@ if (-Not(Test-Path "$InFile")) {
 
 if (-Not($eSchoolSession)) {
     . $PSScriptRoot\eSchool-Login.ps1 -username $username -passwordfile $passwordfile
+    if ($LASTEXITCODE -eq '1'){
+        exit(1)
+    }
 }
 
 if (-Not(Get-Variable -Name eSchoolSession)) {

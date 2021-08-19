@@ -69,7 +69,7 @@ $params = @{
 }
 
 $response2 = Invoke-WebRequest -Uri $loginUrl -WebSession $eSchoolSession -Method POST -Body $params -ErrorAction Stop
-if (($response2.ParsedHtml.title -eq "Login") -or ($response2.StatusCode -ne 200)) { write-host "Failed to login."; exit 1; }
+if (($response2.ParsedHtml.title -eq "Login") -or ($response2.StatusCode -ne 200)) { write-host "Failed to login."; exit(1); }
 
 $fields = $response2.InputFields | Group-Object -Property name -AsHashTable
 $database = $response2.RawContent | Select-String -Pattern 'selected="selected" value="....' -All | Select-Object -Property Matches | ForEach-Object { $PSItem.Matches[0].Value }
