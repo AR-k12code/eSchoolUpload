@@ -29,7 +29,7 @@ if (-Not(Test-Path "$InFile")) {
 }
 
 if (-Not($eSchoolSession)) {
-    . $PSScriptRoot\eSchool-Login.ps1 -username $username
+    . $PSScriptRoot\eSchool-Login.ps1 -username $username -passwordfile $passwordfile
 }
 
 if (-Not(Get-Variable -Name eSchoolSession)) {
