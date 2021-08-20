@@ -1,11 +1,25 @@
+<#
+eSchool Craate Download Definition for ALL tables specified.
+You can not have an existing upload/download definition called "DBEXP"
 
-#eSchool Craate Download Definition for ALL tables specified.
-#You can not have an existing upload/download definition called "DBEXP"
+Example:
+$tables = @('REG','REG_ACADEMIC','REG_BUILDING','REG_BUILDING_GRADE','REG_CALENDAR','REG_CONTACT','REG_CONTACT_PHONE','REG_ENTRY_WITH','REG_ETHNICITY','REG_NOTES','REG_PERSONAL','REG_PROGRAMS','REG_ROOM','REG_STAFF','REG_STAFF_ADDRESS','REG_STAFF_BLDGS','REG_STU_CONTACT','REG_USER',,'REGTB_HOUSE_TEAM')
+#No Filtering
+.\eSchool_Table_Exports.ps1 -username 0403cmillsap -DefinitionName "RGALL"
+#Modifications in the last 12 hours.
+.\eSchool_Table_Exports.ps1 -username 0403cmillsap -DefinitionName "RG12H" -SQL 'WHERE CONVERT(DATETIME,CHANGE_DATE_TIME,101) >= DateAdd(Hour, DateDiff(Hour, 0, GetDate())-12, 0)'
+#Modifications in the last 48 hours.
+.\eSchool_Table_Exports.ps1 -username 0403cmillsap -DefinitionName "RG48H" -SQL 'WHERE CONVERT(DATETIME,CHANGE_DATE_TIME,101) >= DateAdd(Hour, DateDiff(Hour, 0, GetDate())-48, 0)'
+
+-SQL 'WHERE SCHOOL_YEAR = (SELECT CASE WHEN MONTH(GetDate()) > 6 THEN YEAR(GetDate()) + 1 ELSE YEAR(GetDate()) END)'
+
+#>
 
 Param(
     [parameter(Mandatory=$false,Helpmessage="eSchool username")][string]$username,
     [parameter(Mandatory=$false,HelpMessage="File for ADE SSO Password")][String]$passwordfile="C:\Scripts\apscnpw.txt",
-    [parameter(Mandatory=$false)][String]$DefinitionName="DBEXP" #By Default the Definition will be called DBEXP. Call it what you want but it must be EXACTLY than 5 characters.
+    [parameter(Mandatory=$false)][String]$DefinitionName="DBEXP", #By Default the Definition will be called DBEXP. Call it what you want but it must be EXACTLY than 5 characters.
+    [parameter(Mandatory=$false)][String]$SQL = $null
 )
 
 if (-Not($tables)) {
@@ -48,6 +62,7 @@ $ddhash["UploadDownloadDefinition"]["DeleteEntity"] = $False
 $ddhash["UploadDownloadDefinition"]["InterfaceHeaders"] = @()
 
 $headerorder = 0
+$tblShortNamesArray = @()
 Import-Csv $PSScriptRoot\eSchoolDatabase.csv | Where-Object { $tables -contains $PSItem.tblName } | Group-Object -Property tblName | ForEach-Object {
     $tblName = $PSItem.Name
 
@@ -63,6 +78,21 @@ Import-Csv $PSScriptRoot\eSchoolDatabase.csv | Where-Object { $tables -contains 
     if ($tblShortName.length -gt 5) {
         $tblShortName = $tblShortName.SubString(0,5)
     }
+
+    #We need to verify we don't already have an interface ID named the same thing. Stupid eSchool and its stupid 5 character limit.
+    if ($tblShortNamesArray -contains $tblShortName) {
+        $number = 0
+        do {
+            $number++
+            if ($tblShortName.length -ge 5) {
+                $tblShortName = $tblShortName.SubString(0,4) + "$number"
+            } else {
+                $tblShortName = $tblShortName + "$number"
+            }
+        } until ($tblShortNamesArray -notcontains $tblShortName)
+    }
+
+    $tblShortNamesArray += $tblShortName
 
     $ifaceheader = $tblShortName
     $description = $tblName
@@ -81,7 +111,7 @@ Import-Csv $PSScriptRoot\eSchoolDatabase.csv | Where-Object { $tables -contains 
         "DelimitChar" = '|'
         "UseChangeFlag" = $False
         "TableAffected" = "$($tblName.ToLower())"
-        "AdditionalSql" = $null
+        "AdditionalSql" = $SQL
         "ColumnHeaders" = $True
         "Delete" = $False
         "CanDelete" = $True
@@ -106,7 +136,7 @@ Import-Csv $PSScriptRoot\eSchoolDatabase.csv | Where-Object { $tables -contains 
             "FormatString" = $null
             "StartPosition" = $null
             "EndPosition" = $null
-            "FieldLength" = [int]$PSItem.colMaxLength + 2 #This fixes the dates that are cut off.
+            "FieldLength" = 255 #[int]$PSItem.colMaxLength + 2 #This fixes the dates that are cut off. #This doesn't seem to matter at all. Set to maximum length.
             "ValidationTable" = $null
             "CodeColumn" = $null
             "ValidationList" = $null

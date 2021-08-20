@@ -18,8 +18,11 @@ Param(
     [parameter(mandatory=$false,Helpmessage="Output File Name")][String]$outputfile,
     [parameter(mandatory=$false,Helpmessage="Run Download InterfaceID")][String]$InterfaceID,
     [parameter(Mandatory=$false)][switch]$TrimCSVWhiteSpace, #Remove Spaces in CSV files. This requires Powershell 7.1+
-    [parameter(Mandatory=$false)][switch]$CSVUseQuotes #If you Trim CSV White Space do you want to wrap everything in quotes?
+    [parameter(Mandatory=$false)][switch]$CSVUseQuotes, #If you Trim CSV White Space do you want to wrap everything in quotes?
+    [parameter(mandatory=$false,Helpmessage="Timeout in Minutes")][int]$Timeout=60 #How long until we consider the task failed? An hour should be enough but you can make it shorter.
 )
+
+$startTime = Get-Date
 
 if (-Not($eSchoolSession)) {
     . $PSScriptRoot\eSchool-Login.ps1 -username $username
@@ -92,7 +95,7 @@ if ($InterfaceID) {
                 $response2.ActiveTasks | ForEach-Object {
                     if ($PSItem.ErrorOccurred -eq "true") {
                         Write-Host "Error: Task", $PSItem.TaskName, "has failed. Clearing error." -ForegroundColor RED
-                        $clearErrorURL = $eschoolDomain + '/Task/ClearErroredTask'
+                        $clearErrorURL = $baseUrl + '/Task/ClearErroredTask'
                         $errorpayload = @{ paramKey = $PSItem.TaskKey }
                         $response3 = Invoke-WebRequest -Uri $clearErrorURL -WebSession $eSchoolSession -Method POST -Body $errorpayload
                     }
@@ -103,6 +106,13 @@ if ($InterfaceID) {
             exit 2
         }
         Write-Host "Waiting on $($inactiveTasks + $activeTasks) to finish..."
+
+        #if task has taken longer than the Timeout we need to exit and close completely.
+        if ((Get-Date) -gt $startTime.AddMinutes($Timeout)) {
+            Write-Host "Error: Task took longer than $Timeout minutes." -ForegroundColor Red
+            exit(1)
+        }
+
     } until (($inactiveTasks -eq 0) -and ($activeTasks -eq 0))
 
     #we have to wait a few seconds for the file to be written even though the task is completed.
@@ -121,7 +131,9 @@ try {
     } elseif ($reportnamelike) {
         $file = $reportsjson | Where-Object { $_.'DisplayName' -like "$reportnamelike*" } | Select-Object -First 1
     } else {
-    	$file = $reportsjson | Out-GridView -OutputMode Single
+        #The Download Definition has ran but we didn't specify to download a file. Exit properly.
+        exit(0)
+    	#$file = $reportsjson | Out-GridView -OutputMode Single
     }
 
     if (-Not($outputfile)) {
@@ -148,6 +160,13 @@ try {
 
                 Write-Host "Info: Cleaning up white spaces in CSV."
                 $filecontents = Import-CSV "$outputfile" -Delimiter $delimiter
+
+                #If file is empty we still need to replace | for , then exit.
+                if (-Not($filecontents)) {
+                    (Get-Content "$outputfile" -Raw) -replace '\|',',' | Out-File "$outputfile" -Force -NoNewline
+                    exit
+                }
+
                 $filecontents | Foreach-Object {  
                     $_.PSObject.Properties | Foreach-Object {
                         try { $_.Value = $_.Value.Trim() } catch {} #after using pipe delimiter this fails sometimes.
