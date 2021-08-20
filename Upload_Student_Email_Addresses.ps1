@@ -44,7 +44,7 @@ try {
 	}
 
 	#Run Download Definition for Student Emails
-	. $PSScriptRoot\eSchoolDownload.ps1 -reportname "student email download" -outputfile "$PSScriptRoot\temp\studentemails.csv" -InterfaceID EMLDL
+	. $PSScriptRoot\eSchoolDownload.ps1 -reportname "student email download" -outputfile "$PSScriptRoot\temp\studentemails.csv" -InterfaceID EMLDL -Timeout 20
 	
 	#Get AD Accounts and build Hash Table on $ADField
 	$adAccounts = Get-ADUser -Filter { Enabled -eq $True -and $ADField -like "*" } -Properties $ADField,Mail | Group-Object -Property $ADField -AsHashTable
