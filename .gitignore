@@ -6,3 +6,5 @@ HomeAccess*.txt
 temp\
 *.json
 template.txt
+TableExports
+Import2Database.ps1
