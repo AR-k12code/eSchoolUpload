@@ -100,7 +100,7 @@ try {
 			$records | ForEach-Object {
 				$lines += "$($PSItem.'CONTACT_ID'),$($PSItem.'EMAIL')`r`n"
 			}
-			$lines | Out-File "$PSScriptRoot\temp\student_email_upload.csv" -Force -NoNewline
+			$lines | Out-File "$PSScriptRoot\temp\student_email_upload.csv" -Force -NoNewline -Encoding ASCII
 		}
 		
 		if (-Not($skipupload)) {
