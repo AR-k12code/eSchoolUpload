@@ -85,6 +85,13 @@ $params2 = @{
 }
 
 $response3 = Invoke-WebRequest -Uri $envUrl -WebSession $eSchoolSession -Method POST -Body $params2
-if ($response3.StatusCode -ne 200) { write-host "Failed to Set Environment."; exit 1; }
+if ($response3.StatusCode -ne 200) {
+    Write-Host "Failed to Set Environment."
+    $eSchoolLoggedIn = $False
+    exit(1)
+} else {
+    $eSchoolLoggedIn = $True
+}
+
 
 # The $eSchoolSession should now be available for running the other scripts.

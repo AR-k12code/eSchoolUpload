@@ -32,12 +32,9 @@ if (-Not(Test-Path "$InFile")) {
 
 if (-Not($eSchoolSession)) {
     . $PSScriptRoot\eSchool-Login.ps1 -username $username -passwordfile $passwordfile
-    if ($LASTEXITCODE -eq '1'){
-        exit(1)
-    }
 }
 
-if (-Not(Get-Variable -Name eSchoolSession)) {
+if ((-Not($eSchoolLoggedIn)) -or (-Not(Get-Variable -Name eSchoolSession))) {
     Write-Host "Error: Failed to login to eSchool." -ForegroundColor Red
     exit(1)
 }
