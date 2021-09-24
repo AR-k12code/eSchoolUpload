@@ -28,7 +28,7 @@ if (-Not($eSchoolSession)) {
     . $PSScriptRoot\eSchool-Login.ps1 -username $username
 }
 
-if (-Not(Get-Variable -Name eSchoolSession)) {
+if ((-Not($eSchoolLoggedIn)) -or (-Not(Get-Variable -Name eSchoolSession))) {
     Write-Host "Error: Failed to login to eSchool." -ForegroundColor Red
     exit(1)
 }

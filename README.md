@@ -8,7 +8,8 @@ Craig Millsap 2/9/2020 - Sample Script with Download/Upload Definitions PDF
 Craig Millsap 10/12/2020 - Fix for stuck tasks that would indefinitely hang script.  
 Craig Millsap 11/16/2020 - Choose the username format for Generating the HAC logins.  
 Craig Millsap 3/11/2021 - Major overhaul. Now works with Powershell 7. Designed to be invoked with parameters eSchool Email Upload is now District Agnostic. Email Guardians Access Codes via GAM. Generate HAC Logins for Guardians and Students. Use CognosDefaults.ps1 if exists.  
-Craig Millsap 3/29/2021 - Now includes the Table Exports scripts so you can export any eSchool Tables you may need to process locally.  
+Craig Millsap 3/29/2021 - Now includes the Table Exports scripts so you can export any eSchool Tables you may need to process locally.
+Craig Millsap 9/24/2021 - Refined login check. Removed table exports as that will be a completely different project that usees the eSchoolUpload project as a dependency. Included pictures of new Upload and Download Definitions needed for Upload_Student_Email_Addresses.ps1
 
 # eSchool Scripts
 These scripts log you into eSchool, runs Upload or Download definitions, Uploads files or Downloads files. This requires a completed and ready file to upload, pre-built Upload or Download Definitions. Sample script and Upload/Download definitions are provided.
@@ -56,28 +57,14 @@ Our office folks often mis-type student email address, or don't put them in at a
   -GuardianPriority 2                      #Enable WEB_ACCESS for Guardians up to this Priority Number.
   -RunMode R                               #Everything is run in VERIFY mode by default.
 ````
+
 # Download\Upload Definitions
-Some sample definitions are supplied in the Definitions folder. Using Powershell 7 can you can run:
+Using Powershell 7 can you can run create the needed Upload/Download tasks for email by running:
 ````
 .\Definitions\Create_Definitions.ps1
 ````
 This will create three definitions used to accomplish this task. This will not overwrite any existing definitions. The definitions will need to be named EMLDL,EMLUP,EMLAC.
 
-# eSchool Table Exports
-This script creates a Download Definition for the eSchool tables specified in the $tables variable.
-
-The hard coded ones are @('REG','REG_STU_CONTACT','REG_CONTACT')
-
-You can customize what tables you want in your export by specifying the $tables variable then running the script.
-````
-$tables = @('REG','REG_STU_CONTACT_ALERT')
-.\TableExports\eSchool_Table_Exports.ps1 -username "0401cmillsap" -DefinitionName "EXPDB"
-.\eSchoolDownload.ps1 -username "0401cmillsap" -InterfaceID "EXPDB" -reportname "REG CONTACT" -TrimCSVWhiteSpace
-.\eSchoolDownload.ps1 -username "0401cmillsap" -reportname "REG STU CONTACT" -TrimCSVWhiteSpace
-.\eSchoolDownload.ps1 -username "0401cmillsap" -reportname "REG CONTACT" -TrimCSVWhiteSpace
-etc...
-````
-
-Alternatively you can schedule your Download Definitions to run a specific time then download the files that should be available in your directory.
-
-Note: The delimiter is PIPE to work with fields that have commas in them. -TrimCSVWhiteSpace converts the file from PIPE delimiter to comma.
+![EMLDL Definition](https://github.com/AR-k12code/eSchoolUpload/blob/master/Definitions/EMLDL.png?raw=true "Download Definition for emails from eSchool")
+![EMLUP Definition](https://github.com/AR-k12code/eSchoolUpload/blob/master/Definitions/EMLUP.png?raw=true "Upload Definition for setting emails in eSchool")
+![EMLAC Definition](https://github.com/AR-k12code/eSchoolUpload/blob/master/Definitions/EMLAC.png?raw=true "Upload Definition for turning on Web Acceess Flag")

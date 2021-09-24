@@ -37,8 +37,7 @@ try {
 	#Login and store $eSchoolSession
 	. $PSScriptRoot\eSchool-Login.ps1 -username $username -passwordfile $passwordfile
 	
-
-	if (-Not(Get-Variable -Name eSchoolSession)) {
+	if ((-Not($eSchoolLoggedIn)) -or (-Not(Get-Variable -Name eSchoolSession))) {
 		Write-Host "Error: Failed to login to eSchool." -ForegroundColor Red
 		exit(1)
 	}
@@ -101,7 +100,7 @@ try {
 			$records | ForEach-Object {
 				$lines += "$($PSItem.'CONTACT_ID'),$($PSItem.'EMAIL')`r`n"
 			}
-			$lines | Out-File "$PSScriptRoot\temp\student_email_upload.csv" -Force -NoNewline
+			$lines | Out-File "$PSScriptRoot\temp\student_email_upload.csv" -Force -NoNewline -Encoding ASCII
 		}
 		
 		if (-Not($skipupload)) {

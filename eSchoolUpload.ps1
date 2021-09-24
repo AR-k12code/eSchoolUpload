@@ -20,7 +20,9 @@ Param(
     [parameter(mandatory=$false,Helpmessage="Interface upload Definition to run")][string]$InterfaceID, #Upload definition you want to call, can be found on the upload/download defintiion Interface ID [CASE SENSTIVE!]
     [parameter(Mandatory=$false,HelpMessage="File for ADE SSO Password")][string]$passwordfile="C:\Scripts\apscnpw.txt",
     [parameter(mandatory=$false,Helpmessage="Specify the time to wait before running the upload script")][int]$addtime = "1", #Specify the time in minutes to wait to run the upload definition
-    [parameter(mandatory=$false,Helpmessage="Insert New Records?")][string]$InsertNewRecords='false' #Do you want the upload definition to insert new records?
+    [parameter(mandatory=$false,Helpmessage="Insert New Records?")][string]$InsertNewRecords='false', #Do you want the upload definition to insert new records?
+    [parameter(mandatory=$false,Helpmessage="Insert New Records?")][string]$UpdateExistingRecords='true', #Do you want the upload definition to update existing records?
+    [parameter(mandatory=$false,Helpmessage="Insert New Records?")][string]$UpdateBlankRecords='false' #Do you want the upload definition to update blank records?
 )
 
 if (-Not(Test-Path "$InFile")) {
@@ -30,12 +32,9 @@ if (-Not(Test-Path "$InFile")) {
 
 if (-Not($eSchoolSession)) {
     . $PSScriptRoot\eSchool-Login.ps1 -username $username -passwordfile $passwordfile
-    if ($LASTEXITCODE -eq '1'){
-        exit(1)
-    }
 }
 
-if (-Not(Get-Variable -Name eSchoolSession)) {
+if ((-Not($eSchoolLoggedIn)) -or (-Not(Get-Variable -Name eSchoolSession))) {
     Write-Host "Error: Failed to login to eSchool." -ForegroundColor Red
     exit(1)
 }
@@ -78,8 +77,8 @@ If ($InterfaceID) {
         'InterfaceId' = "$InterfaceID"
         'RunMode' = "$RunMode"
         'InsertNewRec' = "$InsertNewRecords"
-        'UpdateExistRec' = 'true'
-        'UpdateBlankRec' = 'false'
+        'UpdateExistRec' = "$UpdateExistingRecords"
+        'UpdateBlankRec' = "$UpdateBlankRecords"
         'ImportDirectory' = 'UD'
         'StudWithoutOpenProg' = 'USD'
         'RunType' = 'UPLOAD'

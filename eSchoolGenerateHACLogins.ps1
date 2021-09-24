@@ -31,8 +31,9 @@ Param(
 	[parameter(mandatory=$false)][switch]$OverrideExistingLogins #I would only ever use this on guardians to generate a new account using their email address.
 )
 
-if (-Not($eSchoolSession)) {
-    . ./eSchool-Login.ps1 -username $username
+if ((-Not($eSchoolLoggedIn)) -or (-Not(Get-Variable -Name eSchoolSession))) {
+    Write-Host "Error: Failed to login to eSchool." -ForegroundColor Red
+    exit(1)
 }
 
 #Generate HAC Logins
