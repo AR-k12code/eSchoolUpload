@@ -68,3 +68,7 @@ This will create three definitions used to accomplish this task. This will not o
 ![EMLDL Definition](https://github.com/AR-k12code/eSchoolUpload/blob/master/Definitions/EMLDL.png?raw=true "Download Definition for emails from eSchool")
 ![EMLUP Definition](https://github.com/AR-k12code/eSchoolUpload/blob/master/Definitions/EMLUP.png?raw=true "Upload Definition for setting emails in eSchool")
 ![EMLAC Definition](https://github.com/AR-k12code/eSchoolUpload/blob/master/Definitions/EMLAC.png?raw=true "Upload Definition for turning on Web Acceess Flag")
+
+![EMLDL Definition](https://github.com/carbm1/eSchoolUpload/blob/master/Definitions/EMLDL.png?raw=true "Download Definition for emails from eSchool")
+![EMLUP Definition](https://github.com/carbm1/eSchoolUpload/blob/master/Definitions/EMLUP.png?raw=true "Upload Definition for setting emails in eSchool")
+![EMLAC Definition](https://github.com/carbm1/eSchoolUpload/blob/master/Definitions/EMLAC.png?raw=true "Upload Definition for turning on Web Acceess Flag")
