@@ -13,6 +13,7 @@ If you need a modification please contact one of the AR-k12code developers.
 Param(
     [parameter(mandatory=$false,Helpmessage="eSchool username")][String]$username,
     [parameter(mandatory=$false,HelpMessage="File for ADE SSO Password")][String]$passwordfile="C:\Scripts\apscnpw.txt",
+    [parameter(mandatory=$false,HelpMessage="Raw File Name")][String]$rawfilename,
     [parameter(mandatory=$false,Helpmessage="Report Name")][String]$reportname,
     [parameter(mandatory=$false,Helpmessage="Report Name that starts with X")][String]$reportnamelike,
     [parameter(mandatory=$false,Helpmessage="Output File Name")][String]$outputfile,
@@ -126,7 +127,9 @@ try {
     $response3 = Invoke-RestMethod -Uri $reportsurl -WebSession $eSchoolSession
     $reportsjson = $response3.Reports | Sort-Object -Property ModifiedDate -Descending
 
-    if ($reportname) {
+    if ($rawfilename) {
+        $file = $reportsjson | Where-Object { $_.'RawFileName' -eq $rawfilename } | Select-Object -First 1
+    } elseif ($reportname) {
         $file = $reportsjson | Where-Object { $_.'DisplayName' -eq $reportname } | Select-Object -First 1
     } elseif ($reportnamelike) {
         $file = $reportsjson | Where-Object { $_.'DisplayName' -like "$reportnamelike*" } | Select-Object -First 1
