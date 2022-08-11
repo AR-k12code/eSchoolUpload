@@ -4,7 +4,7 @@ These scripts log you into eSchool, runs Upload or Download definitions, Uploads
 The initial use case for this was uploading and then inserting/updating student emails into their mailing contact records.
 Our office folks often mis-type student email address, or don't put them in at all, and then those records don't come across to Clever, iStation, etc., causing various issues for students.
 
-Contributors: Ben Janelle, Charles Weber, Craig Millsap
+Contributors: Ben Janelle, Charles Weber, Craig Millsap, Albert Crosby
 
 # eSchoolUpload.ps1
 ````
@@ -20,7 +20,8 @@ Contributors: Ben Janelle, Charles Weber, Craig Millsap
 .\eSchoolDownload.ps1  
   -username 0000username  
   -reportname "studentemails"             #Files that have a specific name  
-  -reportnamelike "HomeAccessPasswords"   #Files that have the timestamp put at the end. This will download the latest version.  
+  -reportnamelike "HomeAccessPasswords"   #Files that have the timestamp put at the end. This will download the latest version. 
+  -rawfilename "REG_CONTACT.csv"          #Specify the exact filename to download. Not the Name displayed in eSchool.
   -outputfile                             #Path to place downloaded file. If not specified it will use the filename from eSchool.
   -InterfaceID                            #Your Download Definition. This will create the file specified by reportname. Script waits until all tasks are complete. This must be 5 characters. If you have a 3 character InterfaceID you must character pad it with spaces. Example:"WEB  "
 ````
