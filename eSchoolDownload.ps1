@@ -43,7 +43,7 @@ if ($InterfaceID) {
         'StartDate' = '07/01/2019'
         'ImportDirectory' = 'UD'
         'TxtImportDirectory' = ''
-        'TaskScheduler.CurrentTask.Classname' = 'LTDB20_4.CRunDownload'
+        'TaskScheduler.CurrentTask.Classname' = 'LTDB21_4.CRunDownload'
         'TaskScheduler.CurrentTask.TaskDescription' = "Run Interface Download $InterfaceID"
         'groupPredicate' = 'false'
         'Filter.Predicates[0].PredicateIndex' = '1'
