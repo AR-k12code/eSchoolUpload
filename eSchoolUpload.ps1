@@ -83,7 +83,7 @@ If ($InterfaceID) {
         'StudWithoutOpenProg' = 'USD'
         'RunType' = 'UPLOAD'
         'ProgramDatesEnabled' = 'N'
-        'TaskScheduler.CurrentTask.Classname' = 'LTDB20_4.CRunUpload'
+        'TaskScheduler.CurrentTask.Classname' = 'LTDB21_4.CRunUpload'
         'TaskScheduler.CurrentTask.TaskDescription' = "Run Interface Upload $InterfaceID"
         'groupPredicate' = 'false'
         'Filter.Predicates[0].PredicateIndex' = '1'
