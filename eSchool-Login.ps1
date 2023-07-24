@@ -25,7 +25,7 @@ if ($null -eq $username -or $username -eq '') {
     exit(1)
 }
 
-$baseUrl = "https://eschool20.esp.k12.ar.us/eSchoolPLUS20"
+$baseUrl = "https://eschool23.esp.k12.ar.us/eSchoolPLUS/"
 $loginUrl = $baseUrl + '/Account/LogOn?ReturnUrl=%2feSchoolPLUS20%2f'
 $envUrl = $baseUrl + '/Account/SetEnvironment/SessionStart'
 $hacloginsurl = $baseUrl + '/HomeAccess/Utility/GenerateLogins'
